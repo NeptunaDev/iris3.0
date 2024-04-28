@@ -3,17 +3,13 @@
 import Joi from "joi";
 
 // Defined interface
-export interface RegisterClient {
-  name: string;
+export interface LoginClient {
   email: string;
   password: string;
 }
 
 // Create schema
-const RegisterClientSchema = Joi.object<RegisterClient>({
-  name: Joi.string()
-    .required()
-    .description("The name associated with the API key"),
+const LoginClientSchema = Joi.object<LoginClient>({
   email: Joi.string()
     .email()
     .required()
@@ -24,4 +20,4 @@ const RegisterClientSchema = Joi.object<RegisterClient>({
 });
 
 // Export module
-export default RegisterClientSchema;
+export default LoginClientSchema;

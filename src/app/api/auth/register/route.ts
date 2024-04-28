@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 // Personal
 import { register } from "@/controllers/auth/auth.controller";
 import validateSchema from "@/middlewares/schema/validate.middleware";
-import { RegisterUserSchema } from "@/schemas/auth/auth.schema";
+import { RegisterClientSchema } from "@/schemas/auth/auth.schema";
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     // Validate schema
-    const resValidateSchema = validateSchema(body, RegisterUserSchema);
+    const resValidateSchema = validateSchema(body, RegisterClientSchema);
     if (resValidateSchema) return resValidateSchema;
 
     // Register user

@@ -1,6 +1,7 @@
 // Import dependences
 // Personal
-import RegisterUserSchema from "./register.schema";
+import RegisterClientSchema from "./register.schema";
+import LoginClientSchema from "./loginSchema";
 
 // Export module
-export { RegisterUserSchema };
+export { RegisterClientSchema, LoginClientSchema };

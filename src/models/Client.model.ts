@@ -1,6 +1,6 @@
 // Import dependences
 // External
-import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
 // Defined interface
 export interface Client extends Document {
@@ -10,11 +10,10 @@ export interface Client extends Document {
 }
 
 // Create schema
-const ClientSchema = new Schema<Client>({
+const ClientSchema = new mongoose.Schema<Client>({
   name: {
     type: String,
     required: true
-  
   },
   email: {
     type: String,
@@ -30,7 +29,7 @@ const ClientSchema = new Schema<Client>({
 })
 
 // Create model
-const ClientModel = model<Client>("Client", ClientSchema)
+const ClientModel = mongoose.models.Client || mongoose.model<Client>("Client", ClientSchema)
 
 // Export model
 export default ClientModel;

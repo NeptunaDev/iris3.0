@@ -14,7 +14,7 @@ const register = async (body: any) => {
     // Return response
     return NextResponse.json(
       {
-        message: "Client register successfully",
+        message: "Client registered successfully",
         status: 200,
         data: client,
       },
