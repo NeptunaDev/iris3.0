@@ -29,7 +29,7 @@ const ClientSchema = new mongoose.Schema<Client>({
 })
 
 // Create model
-const ClientModel = mongoose.models.Client || mongoose.model<Client>("Client", ClientSchema)
+const ClientModel = mongoose.models.Client as mongoose.Model<Client> || mongoose.model<Client>("Client", ClientSchema);
 
 // Export model
 export default ClientModel;
