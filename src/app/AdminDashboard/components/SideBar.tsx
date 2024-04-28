@@ -3,7 +3,7 @@ import Link from "next/link";
 import React from "react";
 import { FaChartLine, FaUser, FaWifi } from "react-icons/fa";
 import { FaPersonCirclePlus } from "react-icons/fa6";
-import { MdPlace } from "react-icons/md";
+import { MdOutlineControlCamera, MdPlace } from "react-icons/md";
 import { SiFormspree } from "react-icons/si";
 import { TbReportSearch } from "react-icons/tb";
 
@@ -77,6 +77,29 @@ const SideBar = () => {
           >
             <SiFormspree style={iconSettings} />
             <Typography sx={{ color: "white" }}>Portal Cautivo</Typography>
+          </Box>
+        </Link>
+        <hr
+          style={{
+            border: "0",
+            borderBottom: "1px solid #384256",
+            margin: "0 20px"
+          }}
+        />
+        <Link href={""}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: "10px",
+              "&:hover": {
+                backgroundColor: "#384256"
+              }
+            }}
+          >
+            <MdOutlineControlCamera style={iconSettings} />
+            <Typography sx={{ color: "white" }}>Controladores</Typography>
           </Box>
         </Link>
         <hr
