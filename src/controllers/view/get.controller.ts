@@ -3,19 +3,19 @@
 import { NextResponse } from "next/server";
 
 // Personal
-import ControllerModel from "@/models/Controller.model";
+import ViewModel from "@/models/View.model";
 
 const get = async (queries: any) => {
   try {
     // Get data
-    const controllers = await ControllerModel.find(queries);
+    const views = await ViewModel.find(queries);
 
     // Return response
     return NextResponse.json(
       {
         message: "Controller get successfully",
         status: 200,
-        data: controllers
+        data: views,
       },
       { status: 200 }
     );
