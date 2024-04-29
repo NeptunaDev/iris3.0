@@ -5,18 +5,27 @@ import { NextResponse } from "next/server";
 // Personal
 import ControllerModel from "@/models/Controller.model";
 
-const create = async (body: any) => {
+const update = async (body: any) => {
   try {
-    // Save new controller
-    const newController = new ControllerModel(body);
-    const controller = await newController.save();
+    // Get data
+    const { id } = body;
+    delete body.id;
+
+    // Update controller
+    const controllerUpdated = await ControllerModel.findByIdAndUpdate(
+      id,
+      body,
+      {
+        new: true,
+      }
+    );
 
     // Return response
     return NextResponse.json(
       {
-        message: "Controller created successfully",
+        message: "Controller updated successfully",
         status: 200,
-        data: controller,
+        data: controllerUpdated,
       },
       { status: 200 }
     );
@@ -26,4 +35,4 @@ const create = async (body: any) => {
 };
 
 // Export module
-export { create };
+export { update };
