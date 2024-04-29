@@ -3,7 +3,7 @@
 import mongoose from "mongoose";
 
 // Defined interface Info
-interface Info {
+export interface Info {
   label: string
   value: string
   type: string
