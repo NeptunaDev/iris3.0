@@ -13,6 +13,8 @@ import {
 import { MdOutlineVisibility, MdOutlineVisibilityOff } from "react-icons/md";
 import Link from "next/link";
 // import { useRouter } from "next/router";
+import { setCookie } from "cookies-next";
+import { enCrypto } from "@/lib/crypto";
 
 // "email": "juan4@mail.com",
 //     "password": "juan123."
@@ -56,12 +58,8 @@ const Login: React.FC = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log(data);
-        console.log("La solicitud fue exitosa", response.status);
+        setCookie("token", data.data.token);
         // router.push("/AdminDashboard");
-      } else {
-        console.log("La solicitud no fue exitosa", response.status);
-        // Manejar el caso en que la solicitud no fue exitosa
       }
     } catch (error) {
       console.log("Error en la solicitud:", error);
