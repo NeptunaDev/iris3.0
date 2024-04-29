@@ -13,7 +13,7 @@ const validateSchema = (body: any, schema: Joi.ObjectSchema<any>) => {
     };
 
     // Validate schema
-    const { error, value } = schema.validate(body, options);
+    const { error } = schema.validate(body, options);
 
     // Return error if exists
     if (error) {
