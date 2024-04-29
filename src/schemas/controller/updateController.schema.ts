@@ -3,20 +3,18 @@
 import Joi from "joi";
 
 // Defined interface
-export interface Get {
-  _id: string;
-  idClient: string;
+export interface Update {
+  id: string;
   idCaptivePortal: string;
   ap: string;
   site: string;
 }
 
-// Get schema
-const GetSchema = Joi.object<Get>({
-  _id: Joi.string().description("The id associated with the controller"),
-  idClient: Joi.string().description(
-    "The idClient associated with the controller"
-  ),
+// Update schema
+const UpdateSchema = Joi.object<Update>({
+  id: Joi.string()
+    .required()
+    .description("The id associated with the controller"),
   idCaptivePortal: Joi.string().description(
     "The idCaptivePortal associated with the controller"
   ),
@@ -25,4 +23,4 @@ const GetSchema = Joi.object<Get>({
 });
 
 // Export module
-export { GetSchema };
+export { UpdateSchema };
