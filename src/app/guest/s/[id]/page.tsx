@@ -10,176 +10,23 @@ import { Controller } from "@/models/Controller.model";
 
 export default function PortalCautive({ params }: { params: { id: string } }) {
   console.log(params.id);
-  const queries = getQueriesStr(useSearchParams().toString());
-  console.log("🚀 ~ PortalCautive ~ queries:", queries);
-
-  interface FormData {
-    [key: string]: {
-      label: string;
-      value: string;
-      type: string;
-    };
-  }
-
-  const [formData, setFormData] = useState<FormData>(
-    inputs.reduce(
-      (acc, input) => ({
-        ...acc,
-        [input.label]: {
-          label: input.label,
-          value: input?.options?.[0] || "",
-          type: "text",
-        },
-      }),
-      {}
-    )
-  );
-  console.log("🚀 ~ PortalCautive ~ formData:", formData);
-
-  const [controller, setController] = useState<any>({});
-  console.log("🚀 ~ PortalCautive ~ controller:", controller);
-
-  const [view, setView] = useState<any>();
-  console.log("🚀 ~ PortalCautive ~ view:", view);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: {
-        ...prev.name,
-        value,
-      },
-    }));
-  };
-
-  const handleChangeSelect = (e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: {
-        ...prev.name,
-        value,
-      },
-    }));
-  };
-
-  const sendForm = async () => {
-    const response = await fetch(`/api/view`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: view._id,
-        isLogin: true,
-        info: Object.values(formData),
-      }),
-    });
-    const data = await response.json();
-    console.log("🚀 ~ sendForm ~ data:", data);
-    setView(data.data)
-  };
-
-  useEffect(() => {
-    const getData = async () => {
-      const response = await fetch(
-        `/api/controller?site=${params.id}&ap=${queries?.ap}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const data = await response.json();
-      setController(data.data[0]);
-    };
-    getData();
-  }, []);
-
-  useEffect(() => {
-    if (!controller?._id || view) return;
-    const createView = async () => {
-      const response = await fetch(`/api/view`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          idController: controller._id,
-          ap: queries?.id,
-        }),
-      });
-      const data = await response.json();
-      setView(data.data);
-    };
-    createView();
-  }, [controller]);
+  const queries = getQueriesStr(useSearchParams().toString())
+  console.log("🚀 ~ PortalCautive ~ queries:", queries)
 
   return (
-    <Stack bgcolor={"#333"} minHeight={"100vh"} alignItems={"center"} py={5}>
-      <Stack
-        width={{
-          md: "80%",
-          xs: "90%",
-        }}
-      >
-        <Typography fontSize={"2REM"} fontWeight={700} color={"#CCCCCC"}>
-          Netmask
-        </Typography>
-        <Typography fontSize={"1.3REM"} fontWeight={500} color={"#CCCCCC"}>
-          Bienvenido al WIFI
-        </Typography>
-      </Stack>
-      <Stack
-        width={{
-          md: "60%",
-          xs: "80%",
-        }}
-        maxWidth={"600px"}
-        gap={3}
-      >
-        {inputs.map((input, index) => {
-          if (input.type === "select") {
-            return (
-              <SelectInput
-                key={index}
-                label={input.label}
-                value={formData[input.label].value}
-                handleChange={handleChangeSelect}
-                options={input.options || [""]}
-              />
-            );
-          }
-          return (
-            <Input
-              handleChange={handleChange}
-              key={index}
-              label={input.label}
-              type={input.type}
-              placeholder={input?.placeholder}
-              value={formData[input.label].value}
-            />
-          );
-        })}
-        <Button
-          onClick={sendForm}
-          sx={{
-            backgroundColor: "#CD9A32",
-            color: "#333",
-            padding: "8px 16px",
-            "&:hover": {
-              backgroundColor: "#CD9A32",
-              color: "#333",
-            },
-          }}
-          variant="contained"
-          fullWidth
-        >
-          Enviar
-        </Button>
-      </Stack>
+    <Stack>
+
+    <form action="/connecting" method="POST">
+              <h2>Iniciar Sesión</h2>
+              <label htmlFor="email">Correo Electrónico:</label>
+              <input type="email" id="email" name="email" required />
+              <label htmlFor="password">Contraseña:</label>
+              <input type="password" id="password" name="password" required />
+              <input type="text" defaultValue={queries?.ap.replaceAll('%3A', ':')} id="ap" name = "ap" />
+              <input type="text" defaultValue={queries?.id.replaceAll('%3A', ':')} id="id" name = "id" />
+              <input type="text" defaultValue={params.id} id="id" name = "site" />
+              <input type="submit" value="Iniciar Sesión" />
+          </form>
     </Stack>
   );
 }
