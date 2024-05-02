@@ -34,6 +34,7 @@ const DynamicForm: React.FC = () => {
     title: "Formulario para creación del Portal Cautivo",
     fields: []
   });
+  console.log("🚀 ~ formConfig:", formConfig)
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const addField = () => {
