@@ -5,9 +5,12 @@ import Footer from "./components/Footer";
 import SideBar from "./components/SideBar";
 import { Box, Button, CssBaseline, Typography } from "@mui/material";
 import  useAuth  from "@/hooks/useIfAuth";
-import { deleteCookie } from "cookies-next";
 
-const Layout = () => {
+const Layout = ({
+  children
+}: Readonly<{
+  children: React.ReactNode;
+}>) => {
   const authorized = useAuth();
   if(authorized){
     return (
@@ -20,6 +23,7 @@ const Layout = () => {
             }}
           >
             <SideBar />
+            {children}
           </Box>
         </Box>
       </Box>

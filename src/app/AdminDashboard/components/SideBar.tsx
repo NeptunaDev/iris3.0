@@ -17,12 +17,13 @@ import { IoIosArrowBack, IoIosArrowForward, IoMdMail } from "react-icons/io";
 import Tooltip from "@mui/material/Tooltip";
 import { Avatar, Menu, MenuItem } from "@mui/material";
 import netmasLogo from "../../../../public/netmask.png";
-import { MdDashboard, MdPlace } from "react-icons/md";
+import { MdDashboard, MdPlace, MdRouter } from "react-icons/md";
 import { FaUsers, FaWifi } from "react-icons/fa";
 import { SiFormspree } from "react-icons/si";
 import { FaPersonCirclePlus } from "react-icons/fa6";
 import { TbReportAnalytics } from "react-icons/tb";
 import { deleteCookie } from "cookies-next";
+import { useRouter } from "next/navigation";
 
 const drawerWidth = 240;
 
@@ -97,6 +98,7 @@ const Drawer = styled(MuiDrawer, {
 const settings = [ "Cerrar Sesión"];
 
 export default function MiniDrawer() {
+  const router = useRouter();
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
@@ -121,6 +123,10 @@ export default function MiniDrawer() {
   const handleDrawerClose = () => {
     setOpen(false);
   };
+
+  const handleRoutes = (path: string) => {
+    router.push(path)
+  }
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -188,12 +194,13 @@ export default function MiniDrawer() {
         <Divider />
         <List>
           {[
-            { text: "Dashboard", icon: <MdDashboard /> },
-            { text: "Portales Cautivo", icon: <SiFormspree /> },
-            { text: "Clientes", icon: <FaPersonCirclePlus /> },
-            { text: "Reportes", icon: <TbReportAnalytics /> },
-          ].map(({ text, icon }, index) => (
-            <ListItem key={text} disablePadding sx={{ display: "block" }}>
+            { text: "Dashboard", icon: <MdDashboard />, path: "/AdminDashboard" },
+            { text: "Portales Cautivo", icon: <SiFormspree />, path: "/AdminDashboard/portalCautiva" },
+            { text: "Controladoras", icon: <MdRouter />, path: "/AdminDashboard/controllersAdd"},
+            // { text: "Clientes", icon: <FaPersonCirclePlus />},
+            // { text: "Reportes", icon: <TbReportAnalytics /> },
+          ].map(({ text, icon, path }, index) => (
+            <ListItem key={text} disablePadding sx={{ display: "block" }} onClick={() => (handleRoutes(path))}>
               <ListItemButton
                 sx={{
                   minHeight: 48,
