@@ -23,12 +23,12 @@ export async function GET(req: NextRequest) {
   try {
     // Get data
     const queries = getQueries(req);
-    if (!("idClient" in queries)) {
-      return NextResponse.json(
-        { error: "idClient is required", status: 400 },
-        { status: 400 }
-      );
-    }
+    // if (!("idClient" in queries)) {
+    //   return NextResponse.json(
+    //     { error: "idClient is required", status: 400 },
+    //     { status: 400 }
+    //   );
+    // }
 
     // Validate schema
     const resValidateSchema = validateSchema(queries, GetControllerSchema);

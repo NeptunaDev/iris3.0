@@ -28,7 +28,6 @@ const ViewSchema = new mongoose.Schema<View>(
     ap: {
       type: String,
       required: true,
-      unique: true,
     },
     isLogin: {
       type: Boolean,
