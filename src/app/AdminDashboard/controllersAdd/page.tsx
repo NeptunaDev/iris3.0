@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { getCookie } from "cookies-next";
-import { Grid, Paper, TextField, Button, Typography, CssBaseline } from "@mui/material";
+import { Grid, Paper, TextField, Button, Typography, CssBaseline, Stack } from "@mui/material";
 
 interface PersonalToken extends JwtPayload  {
   id: string 
@@ -20,7 +20,6 @@ const ControllerCrud: React.FC = () => {
   const [ap, setAp] = useState('');
   const [site, setSite] = useState('');
   const [controllers, setControllers] = useState<Controller[]>([]);
-  console.log("🚀 ~ controllers:", controllers)
 
   if (token) {
     const decodedToken = jwtDecode<PersonalToken>(token);
@@ -73,6 +72,9 @@ const ControllerCrud: React.FC = () => {
   };
 
   return (
+    <Stack sx={{
+      minHeight: '100vh'
+    }} justifyContent={'center'} alignItems={'center'} >
     <Grid container justifyContent="center">
       <Grid item xs={12} sm={8} md={6}>
         <Paper elevation={3} sx={{ padding: 3 }}>
@@ -105,21 +107,16 @@ const ControllerCrud: React.FC = () => {
         <Typography variant="h5" sx={{ marginTop: 3 }}>
           Controllers
         </Typography>
-        {controllers.map(controller => (
-          <div key={controller.id}>
-            <Typography>{controller.ap} - {controller.site}</Typography>
             <Button
               variant="contained"
               color="secondary"
-              onClick={() => handleDelete(controller.id)}
               sx={{ marginTop: 2 }}
             >
               Delete
             </Button>
-          </div>
-        ))}
       </Grid>
     </Grid>
+    </Stack>
   );
 };
 

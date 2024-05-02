@@ -17,11 +17,7 @@ const Layout = ({
       <Box>
         {/* <NavBar /> */}
         <Box>
-          <Box
-            sx={{
-              width: "250px"
-            }}
-          >
+          <Box>
             <SideBar />
             {children}
           </Box>
