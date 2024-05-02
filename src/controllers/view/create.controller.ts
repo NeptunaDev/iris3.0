@@ -3,19 +3,20 @@
 import { NextResponse } from "next/server";
 
 // Personal
-import ControllerModel from "@/models/Controller.model";
+import ViewModel from "@/models/View.model";
 
-const get = async (queries: any) => {
+const create = async (body: any) => {
   try {
-    // Get data
-    const controllers = await ControllerModel.find(queries);
+    // Save new view
+    const newView = new ViewModel(body);
+    const view = await newView.save();
 
     // Return response
     return NextResponse.json(
       {
-        message: "Controller get successfully",
+        message: "View created successfully",
         status: 200,
-        data: controllers
+        data: view,
       },
       { status: 200 }
     );
@@ -25,4 +26,4 @@ const get = async (queries: any) => {
 };
 
 // Export module
-export { get };
+export { create };
