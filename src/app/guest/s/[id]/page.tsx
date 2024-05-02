@@ -1,28 +1,55 @@
 "use client";
 import { Input } from "@/Components/Input/Input";
 import { Button, SelectChangeEvent, Stack, Typography } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { inputs } from "./data";
 import { SelectInput } from "@/Components/Input/SelectInput";
 import { useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
+import { Controller } from "@/models/Controller.model";
 
-export default function PortalCautive({params} : {params: {id: string}}) {
-  console.log(params.id)
-  const queries = getQueriesStr(useSearchParams().toString()) 
-  console.log("🚀 ~ PortalCautive ~ queries:", queries)
-  const [formData, setFormData] = useState<{ [key: string]: string }>(
+export default function PortalCautive({ params }: { params: { id: string } }) {
+  console.log(params.id);
+  const queries = getQueriesStr(useSearchParams().toString());
+  console.log("🚀 ~ PortalCautive ~ queries:", queries);
+
+  interface FormData {
+    [key: string]: {
+      label: string;
+      value: string;
+      type: string;
+    };
+  }
+
+  const [formData, setFormData] = useState<FormData>(
     inputs.reduce(
-      (acc, input) => ({ ...acc, [input.label]: input?.options?.[0] || "" }),
+      (acc, input) => ({
+        ...acc,
+        [input.label]: {
+          label: input.label,
+          value: input?.options?.[0] || "",
+          type: "text",
+        },
+      }),
       {}
     )
   );
+  console.log("🚀 ~ PortalCautive ~ formData:", formData);
+
+  const [controller, setController] = useState<any>({});
+  console.log("🚀 ~ PortalCautive ~ controller:", controller);
+
+  const [view, setView] = useState<any>();
+  console.log("🚀 ~ PortalCautive ~ view:", view);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: {
+        ...prev.name,
+        value,
+      },
     }));
   };
 
@@ -30,9 +57,65 @@ export default function PortalCautive({params} : {params: {id: string}}) {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: {
+        ...prev.name,
+        value,
+      },
     }));
   };
+
+  const sendForm = async () => {
+    const response = await fetch(`/api/view`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: view._id,
+        isLogin: true,
+        info: Object.values(formData),
+      }),
+    });
+    const data = await response.json();
+    console.log("🚀 ~ sendForm ~ data:", data);
+    setView(data.data)
+  };
+
+  useEffect(() => {
+    const getData = async () => {
+      const response = await fetch(
+        `/api/controller?site=${params.id}&ap=${queries?.ap}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+      setController(data.data[0]);
+    };
+    getData();
+  }, []);
+
+  useEffect(() => {
+    if (!controller?._id || view) return;
+    const createView = async () => {
+      const response = await fetch(`/api/view`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          idController: controller._id,
+          ap: queries?.id,
+        }),
+      });
+      const data = await response.json();
+      setView(data.data);
+    };
+    createView();
+  }, [controller]);
 
   return (
     <Stack bgcolor={"#333"} minHeight={"100vh"} alignItems={"center"} py={5}>
@@ -41,7 +124,6 @@ export default function PortalCautive({params} : {params: {id: string}}) {
           md: "80%",
           xs: "90%",
         }}
-        
       >
         <Typography fontSize={"2REM"} fontWeight={700} color={"#CCCCCC"}>
           Netmask
@@ -64,7 +146,7 @@ export default function PortalCautive({params} : {params: {id: string}}) {
               <SelectInput
                 key={index}
                 label={input.label}
-                value={formData[input.label]}
+                value={formData[input.label].value}
                 handleChange={handleChangeSelect}
                 options={input.options || [""]}
               />
@@ -77,11 +159,12 @@ export default function PortalCautive({params} : {params: {id: string}}) {
               label={input.label}
               type={input.type}
               placeholder={input?.placeholder}
-              value={formData[input.label]}
+              value={formData[input.label].value}
             />
           );
         })}
         <Button
+          onClick={sendForm}
           sx={{
             backgroundColor: "#CD9A32",
             color: "#333",
