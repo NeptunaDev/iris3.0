@@ -1,9 +1,9 @@
-// useIfAuth.ts
+"use client"
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCookie } from 'cookies-next';
 
-const useAuth = () => {
+export default function useAuth () {
   const router = useRouter();
 
   useEffect(() => {
@@ -16,7 +16,5 @@ const useAuth = () => {
       }
     }, [router]);
 
-  return !!getCookie("token");
+  return getCookie("token");
 };
-
-export default useAuth;
