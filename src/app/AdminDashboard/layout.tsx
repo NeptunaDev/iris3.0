@@ -14,11 +14,7 @@ const Layout = ({
   return (
     <Box>
       <Box>
-        <Box
-          sx={{
-            width: "250px",
-          }}
-        >
+        <Box>
           <SideBar />
           {children}
         </Box>

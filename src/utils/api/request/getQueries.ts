@@ -13,3 +13,15 @@ export const getQueries = (req: NextRequest): { [key: string]: string } => {
   });
   return queries;
 };
+
+export const getQueriesStr = (queriesStr: string): { [key: string]: string } => {
+  const queries: { [key: string]: string } = {};
+  queriesStr.split("&").forEach((query) => {
+    const [key, value] = query.split("=");
+    if (value) {
+      queries[key] = value;
+    }
+  });
+  return queries;
+};
+

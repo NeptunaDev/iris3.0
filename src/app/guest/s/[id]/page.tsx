@@ -4,8 +4,13 @@ import { Button, SelectChangeEvent, Stack, Typography } from "@mui/material";
 import React, { useState } from "react";
 import { inputs } from "./data";
 import { SelectInput } from "@/Components/Input/SelectInput";
+import { useSearchParams } from "next/navigation";
+import { getQueriesStr } from "@/utils/api/request/getQueries";
 
-export default function PortalCautive() {
+export default function PortalCautive({params} : {params: {id: string}}) {
+  console.log(params.id)
+  const queries = getQueriesStr(useSearchParams().toString()) 
+  console.log("🚀 ~ PortalCautive ~ queries:", queries)
   const [formData, setFormData] = useState<{ [key: string]: string }>(
     inputs.reduce(
       (acc, input) => ({ ...acc, [input.label]: input?.options?.[0] || "" }),

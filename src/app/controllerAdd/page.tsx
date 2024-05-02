@@ -43,6 +43,7 @@ const ControllerCrud: React.FC = () => {
             "Content-Type": "application/json"
           }
         });
+        console.log(response)
         if (response.ok) {
           const data = await response.json();
           console.log("🚀 ~ handleCreate ~ data:", data.data)
