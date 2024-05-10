@@ -21,18 +21,15 @@ import React, { useState } from "react";
 import { MdOutlineVisibility, MdOutlineVisibilityOff } from "react-icons/md";
 import Imglogo from "../../../public/image.png";
 import useAuth from "@/hooks/useIfAuth";
-import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 
-interface SignInFormProps {
-  onSwitchMode: (mode: any) => void;
-}
 
 const styleImg = {
   width: "100%",
   height: "100%",
 };
 
-const SignInForm: React.FC<SignInFormProps> = () => {
+const SignInForm: React.FC = () => {
   const theme = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
