@@ -3,20 +3,20 @@
 import { NextResponse } from "next/server";
 
 // Personal
-import ControllerModel from "@/models/Controller.model";
+import ViewModel from "@/models/View.model";
 
 const create = async (body: any) => {
   try {
-    // Save new controller
-    const newController = new ControllerModel(body);
-    const controller = await newController.save();
+    // Save new view
+    const newView = new ViewModel(body);
+    const view = await newView.save();
 
     // Return response
     return NextResponse.json(
       {
-        message: "Controller created successfully",
+        message: "View created successfully",
         status: 200,
-        data: controller,
+        data: view,
       },
       { status: 200 }
     );

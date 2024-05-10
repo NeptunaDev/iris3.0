@@ -5,18 +5,19 @@ import { NextResponse } from "next/server";
 // Personal
 import ControllerModel from "@/models/Controller.model";
 
-const create = async (body: any) => {
+const destroy = async (body: any) => {
   try {
-    // Save new controller
-    const newController = new ControllerModel(body);
-    const controller = await newController.save();
+    // Get data
+    const { id } = body;
+
+    // Destroy controller
+    await ControllerModel.findByIdAndDelete(id);
 
     // Return response
     return NextResponse.json(
       {
-        message: "Controller created successfully",
+        message: "Controller deleted successfully",
         status: 200,
-        data: controller,
       },
       { status: 200 }
     );
@@ -26,4 +27,4 @@ const create = async (body: any) => {
 };
 
 // Export module
-export { create };
+export { destroy };

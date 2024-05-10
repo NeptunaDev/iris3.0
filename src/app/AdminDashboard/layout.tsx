@@ -1,23 +1,24 @@
+"use client";
 import React from "react";
-import NavBar from "./components/NavBar";
-import Footer from "./components/Footer";
 import SideBar from "./components/SideBar";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
+import useAuth from "@/hooks/useIfAuth";
 
-const Layout = () => {
+const Layout = ({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) => {
+  const authorized = useAuth();
+
   return (
     <Box>
-      <NavBar />
-      <Box sx={{ display: "flex" }}>
-        <Box
-          sx={{
-            width: "250px"
-          }}
-        >
+      <Box>
+        <Box>
           <SideBar />
+          {children}
         </Box>
       </Box>
-      <Footer />
     </Box>
   );
 };
