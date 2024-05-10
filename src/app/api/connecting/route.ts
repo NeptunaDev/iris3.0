@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+// @ts-ignore
 import Unifi from "node-unifi";
+
 
 // Create controller
 export async function POST(req: Request) {
