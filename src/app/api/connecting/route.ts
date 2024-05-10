@@ -5,10 +5,7 @@ import Unifi from "node-unifi";
 export async function POST(req: Request) {
   try {
     // Get data
-    const formData = await req.formData()
-    const id = formData.get('id')
-    const ap = formData.get('ap')
-    const site = formData.get('site')
+    const { id, ap, site } = await req.json()
 
     const unifi = new Unifi.Controller({
       host: "10.1.5.2",
@@ -25,7 +22,7 @@ export async function POST(req: Request) {
     const algo = await unifi.authorizeGuest(id, 2, null, null, null, ap);
     console.log("🚀 ~ POST ~ algo:", algo);
 
-    return NextResponse.json({ message: 'error.message' }, { status: 200 });
+    return NextResponse.json({ message: 'success' }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
