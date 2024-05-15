@@ -6,8 +6,10 @@ import { NextResponse } from "next/server";
 import validateSchema from "@/middlewares/schema/validate.middleware";
 import { LoginClientSchema } from "@/schemas/auth/auth.schema";
 import { login } from "@/controllers/auth/auth.controller";
+import connectDB from "@/configuration/db";
 
 export async function POST(req: Request) {
+  connectDB();
   try {
     // Get data
     const body = await req.json();
