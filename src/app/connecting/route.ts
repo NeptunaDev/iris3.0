@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const site = formData.get("site");
 
     const unifi = new Unifi.Controller({
-      host: "10.1.5.2",
+      host: "161.18.232.231",
       port: "8443",
       username: "iris",
       password: "Iris2024*",
