@@ -1,20 +1,22 @@
 import { NextResponse } from "next/server";
 // @ts-ignore
 import Unifi from "node-unifi";
+import connectDB from "@/configuration/db";
 
 
 // Create controller
 export async function POST(req: Request) {
+  connectDB()
   try {
     // Get data
     const { id, ap, site } = await req.json()
 
     const unifi = new Unifi.Controller({
-      host: "10.1.5.2",
+      host: "161.18.232.231",
       port: "8443",
       username: "iris",
       password: "Iris2024*",
-      sslverify: false,
+      sslverify: true,
       site,
     });
 
