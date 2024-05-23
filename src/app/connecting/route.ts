@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import Unifi from "node-unifi";
+import connectDB from "@/configuration/db";
 
 // Create controller
 export async function POST(req: Request) {
+  connectDB()
   try {
     // Get data
     const formData = await req.formData();
