@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       port: "8443",
       username: "iris",
       password: "Iris2024*",
-      sslverify: false,
+      sslverify: true,
       site,
     });
 
