@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       port: "8443",
       username: "iris",
       password: "Iris2024*",
-      sslverify: true,
+      sslverify: false,
       site,
     });
 
@@ -28,6 +28,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: 'success' }, { status: 200 });
   } catch (error: any) {
+    console.log(error.message)
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
