@@ -17,9 +17,11 @@ import {
   UpdateControllerSchema,
 } from "@/schemas/controller/controller.schema";
 import { getQueries } from "@/utils/api/request/getQueries";
+import connectDB from "@/configuration/db";
 
 // Get controller
 export async function GET(req: NextRequest) {
+  connectDB()
   try {
     // Get data
     const queries = getQueries(req);
