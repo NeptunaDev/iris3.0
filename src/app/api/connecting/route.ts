@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const { id, ap, site } = await req.json()
 
     const unifi = new Unifi.Controller({
-      host: "10.1.5.2",
+      host: "161.18.232.231",
       port: "8443",
       username: "iris",
       password: "Iris2024*",

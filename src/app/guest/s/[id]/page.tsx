@@ -145,13 +145,13 @@ export default function PortalCautive({ params }: { params: { id: string } }) {
     createView();
   }, [controller]);
 
-  if (isLogged) {
-    return (
-      <Stack>
-        <h1>Entraste</h1>
-      </Stack>
-    );
-  }
+  // if (isLogged) {
+  //   return (
+  //     <Stack>
+  //       <h1>Entraste</h1>
+  //     </Stack>
+  //   );
+  // }
 
   return (
     <Stack bgcolor={"white"} minHeight={"100vh"} alignItems={"center"} py={5}>
