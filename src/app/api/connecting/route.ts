@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server";
 // @ts-ignore
 import Unifi from "node-unifi";
-import connectDB from "@/configuration/db";
 
 
 // Create controller
 export async function POST(req: Request) {
-  connectDB()
   try {
     // Get data
     const { id, ap, site } = await req.json()
 
     const unifi = new Unifi.Controller({
-      host: "161.18.232.231",
+      host: "10.1.5.2",
       port: "8443",
       username: "iris",
       password: "Iris2024*",
@@ -28,7 +26,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: 'success' }, { status: 200 });
   } catch (error: any) {
-    console.log(error.message)
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

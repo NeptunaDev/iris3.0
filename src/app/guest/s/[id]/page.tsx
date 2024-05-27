@@ -1,17 +1,30 @@
 "use client";
 import { Input } from "@/Components/Input/Input";
-import { Button, SelectChangeEvent, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  SelectChangeEvent,
+  Stack,
+  Typography,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { inputs } from "./data";
 import { SelectInput } from "@/Components/Input/SelectInput";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
 import { Controller } from "@/models/Controller.model";
+import Image from "next/image";
+import ImageNetmask from "../../../../../public/netmask.png";
+import Imglogo from "../../../../../public/ecorza.png";
+import theme from "@/app/theme/theme";
+
+const styleImg = {
+  width: "100%",
+  height: "100%",
+};
 
 export default function PortalCautive({ params }: { params: { id: string } }) {
-  console.log(params.id);
   const queries = getQueriesStr(useSearchParams().toString());
-  console.log("🚀 ~ PortalCautive ~ queries:", queries);
   const router = useRouter();
 
   interface FormData {
@@ -88,12 +101,12 @@ export default function PortalCautive({ params }: { params: { id: string } }) {
         info: Object.values(formData),
       }),
     });
-    if(!response.ok){
+    if (!response.ok) {
       // No actualizo cliente
       return;
     }
-    setIsLogged(true)
-    router.push("https://www.google.com/?hl=es")
+    setIsLogged(true);
+    router.push("https://www.google.com/?hl=es");
   };
 
   useEffect(() => {
@@ -132,27 +145,36 @@ export default function PortalCautive({ params }: { params: { id: string } }) {
     createView();
   }, [controller]);
 
-  if (isLogged){
+  if (isLogged) {
     return (
       <Stack>
         <h1>Entraste</h1>
       </Stack>
-    )
+    );
   }
 
   return (
-    <Stack bgcolor={"#333"} minHeight={"100vh"} alignItems={"center"} py={5}>
+    <Stack bgcolor={"white"} minHeight={"100vh"} alignItems={"center"} py={5}>
       <Stack
         width={{
           md: "80%",
           xs: "90%",
         }}
+        alignItems={"center"}
       >
-        <Typography fontSize={"2REM"} fontWeight={700} color={"#CCCCCC"}>
-          Netmask
-        </Typography>
-        <Typography fontSize={"1.3REM"} fontWeight={500} color={"#CCCCCC"}>
+        <Box flexGrow={1} textAlign="center" justifyContent={'space-between'} display={'flex'}>
+          <Box >
+            <Image src={Imglogo} alt="logo" style={styleImg} objectFit="cover" />
+          </Box>
+          <Box p={2}>
+            <Image src={ImageNetmask} alt="logo" style={styleImg} objectFit="cover" />
+          </Box>
+        </Box>
+        <Typography fontSize={"1.3REM"} fontWeight={500} color={"#000"}>
           Bienvenido al WIFI
+        </Typography>
+        <Typography fontSize={"1rem"} fontWeight={500} color={"#000"}>
+          Para conectarte por favor diligencia o actualiza tus datos.
         </Typography>
       </Stack>
       <Stack
@@ -189,12 +211,12 @@ export default function PortalCautive({ params }: { params: { id: string } }) {
         <Button
           onClick={sendForm}
           sx={{
-            backgroundColor: "#CD9A32",
-            color: "#333",
+            backgroundColor: theme.palette.primary.dark,
+            color: "#fff",
             padding: "8px 16px",
             "&:hover": {
-              backgroundColor: "#CD9A32",
-              color: "#333",
+              backgroundColor: "#fff",
+              color: theme.palette.primary.dark,
             },
           }}
           variant="contained"
