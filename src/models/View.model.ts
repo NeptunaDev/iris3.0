@@ -1,6 +1,6 @@
 // Import dependences
 // External
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 // Defined interface Info
 export interface Info {
@@ -11,23 +11,25 @@ export interface Info {
 
 // Defined interface View
 export interface View extends Document {
-  idController: mongoose.Schema.Types.ObjectId;
-  ap: string;
-  isLogin: boolean;
-  info: Array<Info>;
+  idAp: mongoose.Schema.Types.ObjectId
+  mac: string
+  isLogin: boolean
+  info: Array<Info>
 }
 
 // Create schema
 const ViewSchema = new mongoose.Schema<View>(
   {
-    idController: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Controller",
+    idAp: {
+      type: Schema.Types.ObjectId,
+      ref: "AP",
       required: true,
+      index: true,
     },
-    ap: {
+    mac: {
       type: String,
       required: true,
+      index: true,
     },
     isLogin: {
       type: Boolean,
@@ -35,7 +37,7 @@ const ViewSchema = new mongoose.Schema<View>(
     },
     info: {
       type: Array<Info>(),
-      required: true,
+      default: [],
     },
   },
   {
