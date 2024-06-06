@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const loginData = await unifi.login("iris", "Iris2024*");
     console.log(unifi.opts.site);
     console.log("🚀 ~ app.post ~ loginData:", loginData);
-    const algo = await unifi.authorizeGuest(id, 2, null, null, null, ap);
+    const algo = await unifi.authorizeGuest(id, 60*24*30, null, null, null, ap);
     console.log("🚀 ~ POST ~ algo:", algo);
 
     return NextResponse.json({ message: 'success' }, { status: 200 });
