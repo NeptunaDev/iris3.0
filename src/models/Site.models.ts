@@ -1,14 +1,14 @@
 import { Model, Schema, model, models } from "mongoose";
 
-enum SiteType {
+export enum SiteType {
   MERAKI = "meraki",
   UBIQUITI = "ubiquiti",
 }
 
 export interface Site extends Document {
   idOrganization: Schema.Types.ObjectId;
-  type: string;
-  siteId: SiteType;
+  type: SiteType;
+  siteId: string;
   name: string;
 }
 
@@ -26,6 +26,7 @@ const SiteSchema = new Schema<Site>(
     },
     siteId: {
       type: String,
+      unique: true,
       index: true,
     },
     name: {
