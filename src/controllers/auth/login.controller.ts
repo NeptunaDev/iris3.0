@@ -5,14 +5,16 @@ import jwt from "jsonwebtoken";
 
 // Personal
 import ClientModel from "@/models/Client.model";
+import { encryptText } from "@/utils/crypto/crypto";
 
 const login = async (body: any) => {
   try {
     // Get data
     const { email, password } = body;
+    const passwordEncrypted = encryptText(password);
 
     // Find client
-    const client = await ClientModel.findOne({ email, password });
+    const client = await ClientModel.findOne({ email, password: passwordEncrypted });
 
     // Validate client
     if (!client) {

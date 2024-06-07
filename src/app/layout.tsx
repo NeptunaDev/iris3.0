@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
  import "./globals.css";
-import connectDB from "@/configuration/db";
 import { ThemeProvider } from '@mui/material/styles';
 import theme from "./theme/theme";
 
@@ -17,7 +16,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  connectDB();
 
   return (
     <html lang="en">
