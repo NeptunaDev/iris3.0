@@ -3,7 +3,7 @@ import { JwtPayload } from "jsonwebtoken";
 
 import OrganizationModel from "@/models/Organization.model";
 
-const create = async (body: any, jwt: JwtPayload) => {
+export const create = async (body: any, jwt: JwtPayload) => {
   try {
     const { id: idClient } = jwt;
     const newProject = new OrganizationModel({ ...body, idClient });
@@ -22,5 +22,3 @@ const create = async (body: any, jwt: JwtPayload) => {
     }
   }
 };
-
-export default create;
