@@ -22,6 +22,8 @@ const OrganizationSchema = new Schema<Organization>(
   }
 );
 
-const OrganizationModel = (models.Organization as Model<Organization>) || model<Organization>("Organization", OrganizationSchema);
+const OrganizationModel =
+  (models.Organization as Model<Organization>) ||
+  model<Organization>("Organization", OrganizationSchema);
 
 export default OrganizationModel;
