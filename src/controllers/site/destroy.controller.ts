@@ -1,17 +1,15 @@
-import SiteModel from "@/models/Site.models";
-
 import { NextResponse } from "next/server";
 
-export const update = async (body: any, id: string) => {
+import SiteModel from "@/models/Site.models";
+
+export const destroy = async (id: string) => {
   try {
-    const siteUpdated = await SiteModel.findByIdAndUpdate(id, body, {
-      new: true,
-    });
+    const siteDeleted = await SiteModel.findByIdAndDelete(id, { new: true });
     return NextResponse.json(
       {
-        message: "Site updated successfully",
+        message: "Site deleted successfully",
         status: 200,
-        data: siteUpdated,
+        data: siteDeleted,
       },
       {
         status: 200,
