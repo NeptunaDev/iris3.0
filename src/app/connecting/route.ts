@@ -1,23 +1,29 @@
 import { NextResponse } from "next/server";
 import Unifi from "node-unifi";
+import connectDB from "@/configuration/db";
 
 // Create controller
 export async function POST(req: Request) {
+  console.log("Entra")
+  connectDB()
+  console.log("Conecta")
   try {
     // Get data
     const formData = await req.formData();
     const id = formData.get("id");
     const ap = formData.get("ap");
     const site = formData.get("site");
+    console.log("Form data")
 
     const unifi = new Unifi.Controller({
-      host: "10.1.5.2",
+      host: "161.18.232.231",
       port: "8443",
       username: "iris",
       password: "Iris2024*",
-      sslverify: false,
+      sslverify: true,
       site,
     });
+    console.log("Controller")
 
     const loginData = await unifi.login("iris", "Iris2024*");
     console.log(unifi.opts.site);

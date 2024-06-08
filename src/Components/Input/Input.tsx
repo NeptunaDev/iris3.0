@@ -38,7 +38,7 @@ export function Input({
             color: "#CCC",
           },
           "& .Mui-focused": {
-            color: "#CD9A32",
+            color: "#000",
           },
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: "#CCC",

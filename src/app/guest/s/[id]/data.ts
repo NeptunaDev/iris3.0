@@ -15,27 +15,24 @@ export const inputs = [
     placeholder: 'Ingrese su email',
   },
   {
-    label: 'Tipo de documento',
+    label: 'Edad',
     type: 'select',
     options: [
-      'Cedula de Ciudadania',
-      'Registro Civil',
-      'Tarjeta de Identidad',
+      '10 - 20 Años',
+      '20 - 30 Años',
+      '30 - 40 Años',
+      '40 - 50 Años',
+      '50 o mas Años',
     ]
   }, 
-  {
-    label: 'Numero de documento',
-    type: 'number',
-    placeholder: 'Ingrese su numero de documento',
-  },
   {
     label: 'Teléfono Movil',
     type: 'text',
     placeholder: 'Ingrese su numero de telefono',
   },
   {
-    label: 'Edad',
-    type: 'number',
-    placeholder: 'Ingrese su edad',
+    label: 'Profesión',
+    type: 'text',
+    placeholder: 'Ingrese su Profesión',
   }
 ]

@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const { id, ap, site } = await req.json()
 
     const unifi = new Unifi.Controller({
-      host: "10.1.5.2",
+      host: "161.18.232.231",
       port: "8443",
       username: "iris",
       password: "Iris2024*",
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const loginData = await unifi.login("iris", "Iris2024*");
     console.log(unifi.opts.site);
     console.log("🚀 ~ app.post ~ loginData:", loginData);
-    const algo = await unifi.authorizeGuest(id, 2, null, null, null, ap);
+    const algo = await unifi.authorizeGuest(id, 60*24*30, null, null, null, ap);
     console.log("🚀 ~ POST ~ algo:", algo);
 
     return NextResponse.json({ message: 'success' }, { status: 200 });

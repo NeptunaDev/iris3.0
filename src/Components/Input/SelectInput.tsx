@@ -43,7 +43,7 @@ export function SelectInput({
             color: "#CCC",
           },
           "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: '#CCC'
+            borderColor: '#000'
           },
         }}
       >
@@ -53,7 +53,7 @@ export function SelectInput({
             value={option}
             sx={{
               "&.Mui-selected": {
-                color: "#CD9A32",
+                color: "#000",
               },
             }}
           >
