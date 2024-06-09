@@ -1,3 +1,6 @@
+import { NextResponse } from "next/server";
+import { JwtPayload } from "jsonwebtoken";
+
 import connectDB from "@/configuration/db";
 import {
   deleteOrganization,
@@ -7,8 +10,6 @@ import { verifyJwt } from "@/middlewares/jwt/verifyJwt.middleware";
 import { clientIsOwnerOfProject } from "@/middlewares/organization/organization.middleware";
 import validateSchema from "@/middlewares/schema/validate.middleware";
 import { UpdateOrganizationSchema } from "@/schemas/organization/organization.schema";
-import { JwtPayload } from "jsonwebtoken";
-import { NextResponse } from "next/server";
 
 interface Params {
   params: {
