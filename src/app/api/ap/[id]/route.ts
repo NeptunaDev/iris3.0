@@ -10,7 +10,10 @@ import {
   validateClientIsOwnerOfAp,
   validateMacIsUnique,
 } from "@/middlewares/ap/ap.middleware";
-import { updateApController } from "@/controllers/ap/ap.controller";
+import {
+  destroyApController,
+  updateApController,
+} from "@/controllers/ap/ap.controller";
 
 interface Params {
   params: {
@@ -19,6 +22,33 @@ interface Params {
 }
 
 connectDB();
+export async function DELETE(req: Request, { params }: Params) {
+  try {
+    const jwt = verifyJwt(req);
+    if (jwt instanceof Error)
+      return NextResponse.json(
+        { error: jwt.message, status: 401 },
+        { status: 401 }
+      );
+
+    const resValidateIsOwner = await validateClientIsOwnerOfAp(
+      params.id,
+      jwt as JwtPayload
+    );
+    if (resValidateIsOwner) return resValidateIsOwner;
+
+    const res = await destroyApController(params.id);
+    return res;
+  } catch (error) {
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message, status: 500 },
+        { status: 500 }
+      );
+    }
+  }
+}
+
 export async function PATCH(req: Request, { params }: Params) {
   try {
     const jwt = verifyJwt(req);

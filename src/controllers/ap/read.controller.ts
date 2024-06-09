@@ -1,6 +1,7 @@
 import { JwtPayload } from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
+import APModel from "@/models/AP.model";
 import OrganizationModel from "@/models/Organization.model";
 import SiteModel from "@/models/Site.models";
 
@@ -14,8 +15,11 @@ export const read = async (jwt: JwtPayload) => {
     const sites = await SiteModel.find({
       idOrganization: { $in: organizationsId },
     });
+    const aps = await APModel.find({
+      idSite: { $in: sites.map((site) => site._id) },
+    });
     return NextResponse.json(
-      { message: "Site read successfully", status: 200, data: sites },
+      { message: "AP read successfully", status: 200, data: aps },
       { status: 200 }
     );
   } catch (error) {
