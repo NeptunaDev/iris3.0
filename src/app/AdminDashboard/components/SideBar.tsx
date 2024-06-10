@@ -86,8 +86,8 @@ const Sidebar: React.FC<Props> = ({ window }) => {
           { text: 'Portales Cautivos', icon: <FaNetworkWired />, path: '/AdminDashboard/portalCautive' },
           { text: 'Proyectos', icon: <FaSlidersH />, path: '/AdminDashboard/controllersAdd' },
           { text: 'AP', icon: <FaWifi />, path: '/Wifi' },
-          { text: 'Usuarios', icon: <FaUsers />, path: '/Usuarios' },
-          { text: 'Lugares', icon: <FaMapMarkerAlt />, path: '/Lugares' },
+          { text: 'Sites', icon: <FaUsers />, path: '/Usuarios' },
+          // { text: 'Lugares', icon: <FaMapMarkerAlt />, path: '/Lugares' },
         ].map((item, index) => (
           <ListItem button key={index} onClick={() => handleNavigation(item.path)}>
             <ListItemIcon>{item.icon}</ListItemIcon>
