@@ -83,7 +83,6 @@ const SignInForm: React.FC = () => {
       console.log(response);
       if (response.ok) {
         const data = await response.json();
-        console.log("🚀 ~ handleSubmit ~ data:", data)
         setCookie("token", data.data.token);
         router.push("/AdminDashboard");
       } else {
