@@ -13,9 +13,9 @@ export async function GET(req: NextRequest) {
   try {
     // Get Data
     const queries = getQueries(req);
-    if (!("idController" in queries)) {
+    if (!("idAp" in queries)) {
       return NextResponse.json(
-        { error: "idController is required", status: 400 },
+        { error: "idAp is required", status: 400 },
         { status: 400 }
       );
     }

@@ -8,9 +8,9 @@ import ViewModel from "@/models/View.model";
 const getUniqueDevices = async (queries: any) => {
   try {
     // Get data
-    const { idController } = queries;
+    const { idAp } = queries;
     
-    const uniqueAps = await ViewModel.distinct("ap", { idController: idController });
+    const uniqueAps = await ViewModel.distinct("mac", { idAp: idAp });
     
     // Return response
     return NextResponse.json(
