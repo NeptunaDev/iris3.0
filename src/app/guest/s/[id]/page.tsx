@@ -16,25 +16,63 @@ import Image from "next/image";
 import ImageNetmask from "../../../../../public/netmask.png";
 import Imglogo from "../../../../../public/ecorza.png";
 import theme from "@/app/theme/theme";
+import { error } from "console";
 
 const styleImg = {
   width: "100%",
   height: "100%",
 };
 
-export default function PortalCautive({ params }: { params: {
-  siteId: any; id: string 
-} }) {
+interface FormData {
+  [key: string]: {
+    label: string;
+    value: string;
+    type: string;
+  };
+}
+
+interface Params {
+  params: {
+    id: string;
+  };
+}
+
+interface Site {
+  _id: string;
+  idOrganization: string;
+  type: "ubiquiti" | "meraki";
+  siteId: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AP {
+  _id: string;
+  idSite: string;
+  mac: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface View {
+  idAp: string;
+  mac: string;
+  isLogin: boolean;
+  info: [];
+  _id: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export default function PortalCautive({ params }: Params) {
   const queries = getQueriesStr(useSearchParams().toString());
   const router = useRouter();
+  const [isError, setIsError] = useState<boolean>(false);
+  const [site, setSite] = useState<Site>({} as Site);
+  const [ap, setAp] = useState<AP>({} as AP);
+  const [view, setView] = useState<View>({} as View);
 
-  interface FormData {
-    [key: string]: {
-      label: string;
-      value: string;
-      type: string;
-    };
-  }
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce(
       (acc, input) => ({
@@ -48,11 +86,7 @@ export default function PortalCautive({ params }: { params: {
       {}
     )
   );
-  const [controller, setController] = useState<any>({});
-  const [view, setView] = useState<any>();
   const [isLogged, setIsLogged] = useState(false);
-  const [ubiquitiData, setUbiquitiData] = useState<any>({});
-  console.log("🚀 ~ PortalCautive ~ ubiquitiData:", ubiquitiData)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -77,7 +111,7 @@ export default function PortalCautive({ params }: { params: {
   };
 
   const sendForm = async () => {
-   
+    return;
     const responseConn = await fetch(`/api/connecting`, {
       method: "POST",
       headers: {
@@ -112,37 +146,44 @@ export default function PortalCautive({ params }: { params: {
     router.push("https://www.google.com/?hl=es");
   };
 
+  // Fetch site
   useEffect(() => {
     async function fetchUbiquitiData() {
-      const endpoint = `/api/ubiquiti?type=SITE&siteId=${params.siteId}`;
-  
+      const endpoint = `/api/ubiquiti?type=SITE&siteId=${params.id}`;
       try {
         const response = await fetch(endpoint);
-  
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
+
         const data = await response.json();
-        setUbiquitiData(data.data);
+        setSite(data.data);
         return data;
       } catch (error) {
-        console.error('Error fetching data:', error);
+        // Problem found site, show page of error
+        setIsError(true);
+        console.error("Error fetching data:", error);
       }
     }
-  
+
     fetchUbiquitiData();
-  }, [params.siteId]); // Agregar params.siteId como dependencia
-  
+  }, [params.id]);
 
+  // Fetch ap
   useEffect(() => {
-    if (ubiquitiData) {
-      const getData = async () => {
-        const { _id } = ubiquitiData;
-        console.log("🚀 ~ getData ~ siteId:", _id)
-        const mac = '70:a7:41:8c:c2:5f';
+    if (!site?._id) return;
+    if (!queries?.ap) {
+      setIsError(true);
+      return;
+    }
 
+    const getData = async () => {
+      try {
         const response = await fetch(
-          `/ubiquiti?type=AP&siteId=${_id}&mac=${mac}`,
+          `/api/ubiquiti?type=AP&siteId=${site._id}&mac=${queries.ap.replaceAll(
+            "%3A",
+            ":"
+          )}`,
           {
             method: "GET",
             headers: {
@@ -150,41 +191,61 @@ export default function PortalCautive({ params }: { params: {
             },
           }
         );
-        console.log("🚀 ~ getData ~ response:", response);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
-        setController(data.data[0]);
-      };
-      getData();
-    }
-  }, [ubiquitiData]);
+        setAp(data.data);
+      } catch (error) {
+        setIsError(true);
+        console.error("Error fetching data:", error);
+      }
+    };
+    getData();
+  }, [queries?.ap, site._id]);
 
   useEffect(() => {
-    if (!controller?._id || view) return;
+    if (!ap?._id) return;
+    if (!queries?.id) {
+      setIsError(true);
+      return;
+    }
+    if (view?._id) {
+      return;
+    }
+
     const createView = async () => {
-      const response = await fetch(`/api/view`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          idController: controller._id,
-          ap: queries?.id,
-        }),
-      });
-      const data = await response.json();
-      setView(data.data);
+      try {
+        const response = await fetch(`/api/view`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            idAp: ap?._id,
+            mac: queries?.id.replaceAll("%3A", ":"),
+          }),
+        });
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        setView(() => ({ ...data.data }));
+      } catch (error) {
+        setIsError(true);
+        console.error("Error fetching data:", error);
+      }
     };
+
     createView();
-  }, [controller]);
+  }, [queries?.id, view._id, ap._id]);
 
-
-  // if (isLogged) {
-  //   return (
-  //     <Stack>
-  //       <h1>Entraste</h1>
-  //     </Stack>
-  //   );
-  // }
+  if (isError) {
+    return (
+      <Stack>
+        <h1>Hubo un error</h1>
+      </Stack>
+    );
+  }
 
   return (
     <Stack bgcolor={"white"} minHeight={"100vh"} alignItems={"center"} py={5}>
@@ -195,12 +256,27 @@ export default function PortalCautive({ params }: { params: {
         }}
         alignItems={"center"}
       >
-        <Box flexGrow={1} textAlign="center" justifyContent={'space-between'} display={'flex'}>
-          <Box >
-            <Image src={Imglogo} alt="logo" style={styleImg} objectFit="cover" />
+        <Box
+          flexGrow={1}
+          textAlign="center"
+          justifyContent={"space-between"}
+          display={"flex"}
+        >
+          <Box>
+            <Image
+              src={Imglogo}
+              alt="logo"
+              style={styleImg}
+              objectFit="cover"
+            />
           </Box>
           <Box p={2}>
-            <Image src={ImageNetmask} alt="logo" style={styleImg} objectFit="cover" />
+            <Image
+              src={ImageNetmask}
+              alt="logo"
+              style={styleImg}
+              objectFit="cover"
+            />
           </Box>
         </Box>
         <Typography fontSize={"1.3REM"} fontWeight={500} color={"#000"}>
