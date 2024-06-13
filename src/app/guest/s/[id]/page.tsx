@@ -12,7 +12,6 @@ import { inputs } from "./data";
 import { SelectInput } from "@/Components/Input/SelectInput";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
-import { Controller } from "@/models/Controller.model";
 import Image from "next/image";
 import ImageNetmask from "../../../../../public/netmask.png";
 import Imglogo from "../../../../../public/ecorza.png";
@@ -120,6 +119,7 @@ export default function PortalCautive({ params }: { params: { id: string } }) {
           },
         }
       );
+      console.log("🚀 ~ getData ~ response:", response)
       const data = await response.json();
       setController(data.data[0]);
     };

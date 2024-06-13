@@ -1,6 +1,7 @@
 // src/components/CreateUpdateModal.tsx
 import React from 'react';
-import { Modal, Box, TextField, Button } from '@mui/material';
+import { Modal, Box, TextField, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { SelectChangeEvent } from '@mui/material';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -17,10 +18,11 @@ const style = {
 interface CreateUpdateModalProps {
   open: boolean;
   handleClose: () => void;
-  data: { id: number; field1: string; field2: string };
-  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  data: { _id: string; idSite: string; mac: string; createdAt: string; updatedAt: string; __v: number };
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => void;
   handleSubmit: () => void;
   isUpdate: boolean;
+  siteOptions: string[];
 }
 
 const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
@@ -30,29 +32,38 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
   handleChange,
   handleSubmit,
   isUpdate,
+  siteOptions
 }) => {
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
-        <h2>{isUpdate ? 'Actualizar' : 'Crear'} Registro</h2>
-        <TextField
-          label="Campo 1"
-          name="field1"
-          value={data.field1}
+        <h2>{isUpdate ? 'Actualizar AP' : 'Crear AP'}</h2>
+        <FormControl fullWidth margin="normal">
+          <InputLabel>ID del Sitio</InputLabel>
+          <Select
+          label="ID del Sitio"
+          name="idSite"
+          value={data.idSite}
           onChange={handleChange}
           fullWidth
-          margin="normal"
           disabled={isUpdate}
-        />
+        >
+          {siteOptions.map((option) => (
+            <MenuItem key={option._id} value={option._id}>
+              {option.name}
+            </MenuItem>
+          ))}
+        </Select>
+        </FormControl>
         <TextField
-          label="Campo 2"
-          name="field2"
-          value={data.field2}
+          label="MAC"
+          name="mac"
+          value={data.mac}
           onChange={handleChange}
           fullWidth
           margin="normal"
         />
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
+        <Button variant="contained" color="primary" onClick={handleSubmit} sx={{ mt: 2 }}>
           {isUpdate ? 'Actualizar' : 'Crear'}
         </Button>
       </Box>

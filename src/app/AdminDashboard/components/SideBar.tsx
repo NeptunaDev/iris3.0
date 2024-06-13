@@ -126,8 +126,8 @@ const Sidebar: React.FC<Props> = ({ window }) => {
             icon: <FaSlidersH />,
             path: "/AdminDashboard/controllersAdd",
           },
-          { text: "AP", icon: <FaWifi />, path: "/AdminDashboard/apAdd" },
           { text: "Sites", icon: <FaUsers />, path: "/AdminDashboard/siteAdd" },
+          { text: "AP", icon: <FaWifi />, path: "/AdminDashboard/apAdd" },
           // { text: 'Lugares', icon: <FaMapMarkerAlt />, path: '/Lugares' },
         ].map((item, index) => (
           <ListItem

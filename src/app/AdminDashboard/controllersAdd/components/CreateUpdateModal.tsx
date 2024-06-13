@@ -17,7 +17,7 @@ const style = {
 interface CreateUpdateModalProps {
   open: boolean;
   handleClose: () => void;
-  data: { id: number; field1: string; field2: string };
+  data: { name: string };
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: () => void;
   isUpdate: boolean;
@@ -36,18 +36,9 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
       <Box sx={style}>
         <h2>{isUpdate ? 'Actualizar' : 'Crear'} Registro</h2>
         <TextField
-          label="Campo 1"
-          name="field1"
-          value={data.field1}
-          onChange={handleChange}
-          fullWidth
-          margin="normal"
-          disabled={isUpdate}
-        />
-        <TextField
-          label="Campo 2"
-          name="field2"
-          value={data.field2}
+          label="Nombre"
+          name="name"
+          value={data.name}
           onChange={handleChange}
           fullWidth
           margin="normal"
