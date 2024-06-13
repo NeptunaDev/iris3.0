@@ -21,6 +21,7 @@ import {
   FaNetworkWired,
   FaSlidersH,
 } from "react-icons/fa";
+import { RiTableView } from "react-icons/ri";
 import MenuIcon from "@mui/icons-material/Menu";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -128,7 +129,7 @@ const Sidebar: React.FC<Props> = ({ window }) => {
           },
           { text: "Sites", icon: <FaUsers />, path: "/AdminDashboard/siteAdd" },
           { text: "AP", icon: <FaWifi />, path: "/AdminDashboard/apAdd" },
-          // { text: 'Lugares', icon: <FaMapMarkerAlt />, path: '/Lugares' },
+          { text: "Vistas", icon: <RiTableView />, path: "/AdminDashboard/viewPage" },
         ].map((item, index) => (
           <ListItem
             button

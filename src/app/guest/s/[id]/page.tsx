@@ -22,7 +22,9 @@ const styleImg = {
   height: "100%",
 };
 
-export default function PortalCautive({ params }: { params: { id: string } }) {
+export default function PortalCautive({ params }: { params: {
+  siteId: any; id: string 
+} }) {
   const queries = getQueriesStr(useSearchParams().toString());
   const router = useRouter();
 
@@ -49,6 +51,8 @@ export default function PortalCautive({ params }: { params: { id: string } }) {
   const [controller, setController] = useState<any>({});
   const [view, setView] = useState<any>();
   const [isLogged, setIsLogged] = useState(false);
+  const [ubiquitiData, setUbiquitiData] = useState<any>({});
+  console.log("🚀 ~ PortalCautive ~ ubiquitiData:", ubiquitiData)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -73,6 +77,7 @@ export default function PortalCautive({ params }: { params: { id: string } }) {
   };
 
   const sendForm = async () => {
+   
     const responseConn = await fetch(`/api/connecting`, {
       method: "POST",
       headers: {
@@ -88,7 +93,6 @@ export default function PortalCautive({ params }: { params: { id: string } }) {
       // No puede entrar
       return;
     }
-
     const response = await fetch(`/api/view`, {
       method: "PUT",
       headers: {
@@ -109,22 +113,50 @@ export default function PortalCautive({ params }: { params: { id: string } }) {
   };
 
   useEffect(() => {
-    const getData = async () => {
-      const response = await fetch(
-        `/api/controller?site=${params.id}&ap=${queries?.ap}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+    async function fetchUbiquitiData() {
+      const endpoint = `/api/ubiquiti?type=SITE&siteId=${params.siteId}`;
+  
+      try {
+        const response = await fetch(endpoint);
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      );
-      console.log("🚀 ~ getData ~ response:", response)
-      const data = await response.json();
-      setController(data.data[0]);
-    };
-    getData();
-  }, []);
+        const data = await response.json();
+        setUbiquitiData(data.data);
+        return data;
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+  
+    fetchUbiquitiData();
+  }, [params.siteId]); // Agregar params.siteId como dependencia
+  
+
+  useEffect(() => {
+    if (ubiquitiData) {
+      const getData = async () => {
+        const { _id } = ubiquitiData;
+        console.log("🚀 ~ getData ~ siteId:", _id)
+        const mac = '70:a7:41:8c:c2:5f';
+
+        const response = await fetch(
+          `/ubiquiti?type=AP&siteId=${_id}&mac=${mac}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log("🚀 ~ getData ~ response:", response);
+        const data = await response.json();
+        setController(data.data[0]);
+      };
+      getData();
+    }
+  }, [ubiquitiData]);
 
   useEffect(() => {
     if (!controller?._id || view) return;
@@ -144,6 +176,7 @@ export default function PortalCautive({ params }: { params: { id: string } }) {
     };
     createView();
   }, [controller]);
+
 
   // if (isLogged) {
   //   return (

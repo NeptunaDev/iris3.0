@@ -4,16 +4,16 @@ import Joi from "joi";
 
 // Defined interface
 export interface Create {
-  idController: string;
-  ap: string;
+  idAp: string;
+  mac: string;
 }
 
 // Create schema
 const CreateSchema = Joi.object<Create>({
-  idController: Joi.string()
+  idAp: Joi.string()
     .required()
     .description("The idController associated with the view"),
-  ap: Joi.string()
+  mac: Joi.string()
     .required()
     .description("The ap associated with the view"),
 });
