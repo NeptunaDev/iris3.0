@@ -14,7 +14,7 @@ const create = async (body: any) => {
     // Return response
     return NextResponse.json(
       {
-        message: "Controller registered successfully",
+        message: "Controller created successfully",
         status: 200,
         data: controller,
       },
