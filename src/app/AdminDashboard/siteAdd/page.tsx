@@ -210,7 +210,15 @@ const SiteCrud: React.FC = () => {
   };
 
   const handleUpdate = async () => {
-    const { type, name } = currentData;
+    const {
+      type,
+      name,
+      host,
+      port,
+      username,
+      password,
+      sslverify,
+    } = currentData;
     try {
       const response = await fetch(`/api/site/${currentData._id}`, {
         method: "PATCH",
@@ -218,15 +226,28 @@ const SiteCrud: React.FC = () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ type, name }),
+        body: JSON.stringify({
+          type,
+          name,
+          host,
+          port,
+          username,
+          password,
+          sslverify,
+        }),
       });
-      console.log(response);
-      const data = await response.json();
-      console.log("🚀 ~ handleUpdate ~ data:", data);
+      const newData = await response.json();
+      if (newData.status === 200) {
+        setData((prev) => prev.map((item) => 
+          item._id === newData.data._id ? newData.data : item
+        ));
+        setModalOpen(false);
+      }
     } catch (error) {
       console.log(error, "no pudo");
     }
   };
+  
 
   const handleDelete = async () => {
     try {
