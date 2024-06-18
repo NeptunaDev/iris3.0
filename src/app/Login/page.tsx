@@ -80,7 +80,7 @@ const SignInForm: React.FC = () => {
           "Content-Type": "application/json",
         },
       });
-      console.log(response);
+      
       if (response.ok) {
         const data = await response.json();
         setCookie("token", data.data.token);

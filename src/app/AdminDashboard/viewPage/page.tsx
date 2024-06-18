@@ -16,13 +16,13 @@ const page = () => {
 
   return (
         <Container sx={{ backgroundColor: "#fff", borderRadius: "20px" }}>
-          <Typography variant="h4" gutterBottom>
+          <Typography variant="h1" gutterBottom>
             Datos de Usuarios
           </Typography>
             <Button variant="contained" color="primary" style={{ marginBottom: '20px' }}>
               Descargar CSV
             </Button>
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} sx={{ mt: 2, mb: 3 }}>
             <Table>
               <TableHead>
                 <TableRow>

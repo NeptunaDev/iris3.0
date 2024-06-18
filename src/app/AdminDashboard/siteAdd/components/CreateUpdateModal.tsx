@@ -36,11 +36,13 @@ interface CreateUpdateModalProps {
   handleChange: (
     e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
   ) => void;
-  handleSelectChange: (event: SelectChangeEvent<{ value: unknown }>) => void; // Updated type
+  handleSelectChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+  ) => void;
   handleTypeChange: (event: SelectChangeEvent<string>) => void;
   handleSubmit: () => void;
   isUpdate: boolean;
-  organizations: { id: string; name: string; _id: string }[];
+  organizations: { id: string; name: string; _id: string; idOrganization: string; }[];
 }
 
 const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
@@ -76,7 +78,7 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
           >
             {organizations.map((org) => (
               <MenuItem key={org._id} value={org._id}>
-                {org.name}
+                {org._id}
               </MenuItem>
             ))}
           </Select>

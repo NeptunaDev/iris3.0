@@ -36,7 +36,6 @@ interface Organization {
 const SiteCrud: React.FC = () => {
   const [data, setData] = useState<DataItem[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
-  console.log("🚀 ~ organizations:", organizations)
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [currentData, setCurrentData] = useState<DataItem>({
@@ -54,7 +53,7 @@ const SiteCrud: React.FC = () => {
   useEffect(() => {
     fetchSites();
     fetchOrganizations();
-  }, []);
+  }, [token]);
 
   const fetchSites = async () => {
     if (!token) {
@@ -138,10 +137,10 @@ const SiteCrud: React.FC = () => {
     setCurrentData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // const handleSelectChange = (e: SelectChangeEvent<string>) => {
-  //   const { value } = e.target;
-  //   setCurrentData((prev) => ({ ...prev, idOrganization: value }));
-  // };
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
+    setCurrentData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleTypeChange = (e: React.ChangeEvent<{ value: unknown }>) => {
     const value = e.target.value as string;
@@ -149,47 +148,62 @@ const SiteCrud: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    const url = isUpdate ? `/api/site/${currentData._id}` : "/api/site";
-    const method = isUpdate ? "PUT" : "POST";
-  
-    if (!token) {
-      console.error("Token is missing!");
-      return;
-    }
-  
     try {
-      const response = await fetch(url, {
-        method,
+      const { idOrganization, type, name, siteId } = currentData;
+      const response = await fetch("/api/site", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          idOrganization: currentData.idOrganization,
-          type: currentData.type,
-          name: currentData.name,
-          siteId: currentData.siteId,
-        }),
+        body: JSON.stringify({ idOrganization, type, name, siteId }),
       });
       console.log(response)
-      if (!response.ok) {
-        throw new Error(`Network response was not ok: ${response.status}`);
+      const newData = await response.json();
+      if (newData.status === 200) {
+        setData((prev) => {
+          const exists = prev.some((item) => item._id === newData.data._id);
+          if (!exists) {
+            return [...prev, newData.data];
+          }
+          return prev;
+        });
       }
-  
-      const result = await response.json();
-      if (isUpdate) {
-        setData((prev) => prev.map((item) => (item._id === currentData._id ? result.data : item)));
-      } else {
-        setData((prev) => [...prev, result.data]);
-      }
-  
       setModalOpen(false);
     } catch (error) {
-      console.error("There was a problem with the fetch operation:", error);
+      console.log(error, "no se pudo");
     }
   };
 
-  const handleDelete = () => {
+  const handleUpdate = async () => {
+    const {type, siteId, name} = currentData;
+    try {
+      const response = await fetch(`/api/site/${currentData._id}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({type, siteId, name})
+      });
+      console.log(response);
+    } catch (error) {
+     console.log(error, "no pudo") 
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`/api/site/${currentData._id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      console.log(response)
+    } catch (error) {
+      console.log(error, "No fue Posible Eliminar el Site")
+    }
     setData((prev) => prev.filter((item) => item._id !== currentData._id));
     setDeleteOpen(false);
   };
@@ -260,9 +274,10 @@ const SiteCrud: React.FC = () => {
         open={modalOpen}
         handleClose={handleCloseModal}
         data={currentData}
-        handleChange={handleChange}
         handleTypeChange={handleTypeChange}
-        handleSubmit={handleSubmit}
+        handleChange={handleChange}
+        handleSelectChange={handleSelectChange}
+        handleSubmit={isUpdate ? handleUpdate : handleSubmit}
         isUpdate={isUpdate}
         organizations={organizations}
       />
