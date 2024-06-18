@@ -1,55 +1,180 @@
-import { Box, Divider, Typography } from "@mui/material";
-import React from "react";
-import { FaSearch } from "react-icons/fa";
-import { IoIosNotifications } from "react-icons/io";
-import { FaUser } from "react-icons/fa";
-import { IoMdSettings } from "react-icons/io";
+// src/components/NavBar.tsx
+import React, { useEffect, useState } from "react";
+import {
+  AppBar,
+  Box,
+  IconButton,
+  InputBase,
+  Menu,
+  MenuItem,
+  Badge,
+  Typography,
+  Toolbar,
+  Avatar,
+  Divider,
+  ListItemIcon,
+} from "@mui/material";
+import { styled, alpha } from "@mui/material/styles";
+import { FaBell, FaUserCircle, FaSignOutAlt, FaUser } from "react-icons/fa";
+import MenuIcon from "@mui/icons-material/Menu";
+import SearchIcon from "@mui/icons-material/Search";
+import { deleteCookie, getCookie } from "cookies-next";
+import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
-const iconStyle = {
-  color: "black",
-  fontSize: "20px"
-};
+const Search = styled("div")(({ theme }) => ({
+  position: "relative",
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  "&:hover": {
+    backgroundColor: alpha(theme.palette.common.white, 0.25),
+  },
+  marginRight: theme.spacing(2),
+  marginLeft: 0,
+  width: "100%",
+  [theme.breakpoints.up("sm")]: {
+    marginLeft: theme.spacing(3),
+    width: "auto",
+  },
+}));
 
-const iconNoti = {
-  color: "black",
-  fontSize: "25px"
-};
+const SearchIconWrapper = styled("div")(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: "100%",
+  position: "absolute",
+  pointerEvents: "none",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+}));
 
-const iconSettings = {
-  color: "black",
-  fontSize: "20px",
-  paddingRight: "10px"
-};
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: "inherit",
+  "& .MuiInputBase-input": {
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create("width"),
+    width: "100%",
+    [theme.breakpoints.up("md")]: {
+      width: "20ch",
+    },
+  },
+}));
 
-const NavBar = () => {
-  return (
-    <>
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          height: "80px"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", color: "black" }}>
-          logo
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "30px" }}>
-          <FaSearch style={iconStyle} />
-          <IoIosNotifications style={iconNoti} />
-          <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <FaUser style={iconStyle} />
-            <Typography sx={{ color: "black" }}>Netmask</Typography>
-          </Box>
-          <IoMdSettings style={iconSettings} />
-        </Box>
+interface MyJwtPayload {
+  id: string;
+  name: string;
+  iat: number;
+  exp: number;
+}
+
+const NavBar: React.FC<{ handleDrawerToggle: () => void }> = ({
+  handleDrawerToggle,
+}) => {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const isMenuOpen = Boolean(anchorEl);
+  const router = useRouter();
+  const token = getCookie("token");
+  const [name, setName] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof token === "string") {
+      const decoded = jwtDecode<MyJwtPayload>(token);
+      setName(decoded.name);
+    }
+  }, [token]);
+
+  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    deleteCookie("token");
+    router.push("/");
+  };
+
+  const menuId = "primary-search-account-menu";
+  const renderMenu = (
+    <Menu
+      anchorEl={anchorEl}
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      id={menuId}
+      keepMounted
+      transformOrigin={{ vertical: "top", horizontal: "right" }}
+      open={isMenuOpen}
+      onClose={handleMenuClose}
+    >
+      <Box sx={{ padding: 2 }}>
+        <Typography variant="h6" noWrap>
+          {name}
+        </Typography>
       </Box>
-      <Divider
-        sx={{ backgroundColor: "#C1C1C1", width: "100%", height: "1px" }}
-      />
-    </>
+      <Divider />
+      {/* <MenuItem onClick={handleMenuClose}>
+        <ListItemIcon>
+          <FaUser />
+        </ListItemIcon>
+        Perfil
+      </MenuItem> */}
+      <MenuItem onClick={handleLogout}>
+        <ListItemIcon>
+          <FaSignOutAlt />
+        </ListItemIcon>
+        Cerrar Sesión
+      </MenuItem>
+    </Menu>
+  );
+
+  return (
+    <Box sx={{ flexGrow: 1 }}>
+      <AppBar position="fixed">
+        <Toolbar>
+          <Box display="flex" alignItems="center" sx={{ flexGrow: 1 }}>
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="open drawer"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+          </Box>
+          <Box display="flex" alignItems="center">
+            {/* <IconButton size="large" aria-label="show new notifications" color="inherit">
+              <Badge badgeContent={17} color="error">
+                <FaBell style={{ fontSize: '1.2rem' }} />
+              </Badge>
+            </IconButton> */}
+            {/* <Search>
+              <SearchIconWrapper>
+                <SearchIcon />
+              </SearchIconWrapper>
+              <StyledInputBase
+                placeholder="Buscar…"
+                inputProps={{ 'aria-label': 'search' }}
+              />
+            </Search> */}
+            <IconButton
+              size="large"
+              edge="end"
+              aria-label="account of current user"
+              aria-controls={menuId}
+              aria-haspopup="true"
+              onClick={handleProfileMenuOpen}
+              color="inherit"
+            >
+              <Avatar sx={{ width: 30, height: 30 }}/>
+            </IconButton>
+          </Box>
+        </Toolbar>
+      </AppBar>
+      {renderMenu}
+    </Box>
   );
 };
 

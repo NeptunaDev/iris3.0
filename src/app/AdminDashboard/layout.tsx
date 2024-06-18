@@ -1,24 +1,31 @@
+"use client";
 import React from "react";
-import NavBar from "./components/NavBar";
-import Footer from "./components/Footer";
 import SideBar from "./components/SideBar";
-import { Box } from "@mui/material";
+import { CssBaseline, Stack } from "@mui/material";
+import useAuth from "@/hooks/useIfAuth";
+import NavBar from "./components/NavBar";
 
-const Layout = () => {
+const Layout = ({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) => {
+  const authorized = useAuth();
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
   return (
-    <Box>
-      <NavBar />
-      <Box sx={{ display: "flex" }}>
-        <Box
-          sx={{
-            width: "250px"
-          }}
-        >
-          <SideBar />
-        </Box>
-      </Box>
-      <Footer />
-    </Box>
+    <Stack>
+      <CssBaseline />
+      <NavBar handleDrawerToggle={handleDrawerToggle} />
+      <SideBar />
+      <Stack alignItems={"center"} pl={9}>
+        {children}
+      </Stack>
+    </Stack>
   );
 };
 

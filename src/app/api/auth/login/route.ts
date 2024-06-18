@@ -6,12 +6,14 @@ import { NextResponse } from "next/server";
 import validateSchema from "@/middlewares/schema/validate.middleware";
 import { LoginClientSchema } from "@/schemas/auth/auth.schema";
 import { login } from "@/controllers/auth/auth.controller";
+import connectDB from "@/configuration/db";
 
+connectDB();
 export async function POST(req: Request) {
   try {
-    // Get data
+    // Get data 
     const body = await req.json();
-
+    
     // Validate schema
     const resValidateSchema = validateSchema(body, LoginClientSchema);
     if (resValidateSchema) return resValidateSchema;
