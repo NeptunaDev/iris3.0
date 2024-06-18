@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Site not found" }, { status: 404 });
     }
     const passwordEncrypted = decryptText(site.password);
-    console.log("🚀 ~ POST ~ site:", site)
+    console.log("🚀 ~ POST ~ site:", site, passwordEncrypted)
 
     const unifi = new Unifi.Controller({
       host: site.host,
