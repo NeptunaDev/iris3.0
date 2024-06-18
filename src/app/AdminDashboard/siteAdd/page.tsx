@@ -25,6 +25,11 @@ interface DataItem {
   idOrganization: string;
   siteId: string;
   type: string;
+  host: string;
+  port: string;
+  username: string;
+  password: string;
+  sslverify: string;
 }
 
 interface Organization {
@@ -46,6 +51,11 @@ const SiteCrud: React.FC = () => {
     idOrganization: "",
     siteId: "",
     type: "",
+    host: "",
+    port: "",
+    username: "",
+    password: "",
+    sslverify: "",
   });
   const [isUpdate, setIsUpdate] = useState(false);
   const token = getCookie("token");
@@ -114,6 +124,11 @@ const SiteCrud: React.FC = () => {
       idOrganization: "",
       siteId: "",
       type: "",
+      host: "",
+      port: "",
+      username: "",
+      password: "",
+      sslverify: "",
     });
     setIsUpdate(false);
     setModalOpen(true);
@@ -149,7 +164,17 @@ const SiteCrud: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      const { idOrganization, type, name, siteId } = currentData;
+      const {
+        idOrganization,
+        type,
+        name,
+        siteId,
+        host,
+        port,
+        username,
+        password,
+        sslverify,
+      } = currentData;
       const response = await fetch("/api/site", {
         method: "POST",
         headers: {
@@ -161,6 +186,11 @@ const SiteCrud: React.FC = () => {
           type: type.toLowerCase(),
           name,
           siteId,
+          host,
+          port,
+          username,
+          password,
+          sslverify,
         }),
       });
       const newData = await response.json();
@@ -180,7 +210,15 @@ const SiteCrud: React.FC = () => {
   };
 
   const handleUpdate = async () => {
-    const { type, name } = currentData;
+    const {
+      type,
+      name,
+      host,
+      port,
+      username,
+      password,
+      sslverify,
+    } = currentData;
     try {
       const response = await fetch(`/api/site/${currentData._id}`, {
         method: "PATCH",
@@ -188,15 +226,28 @@ const SiteCrud: React.FC = () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ type, name }),
+        body: JSON.stringify({
+          type,
+          name,
+          host,
+          port,
+          username,
+          password,
+          sslverify,
+        }),
       });
-      console.log(response);
-      const data = await response.json();
-      console.log("🚀 ~ handleUpdate ~ data:", data)
+      const newData = await response.json();
+      if (newData.status === 200) {
+        setData((prev) => prev.map((item) => 
+          item._id === newData.data._id ? newData.data : item
+        ));
+        setModalOpen(false);
+      }
     } catch (error) {
       console.log(error, "no pudo");
     }
   };
+  
 
   const handleDelete = async () => {
     try {
@@ -235,7 +286,11 @@ const SiteCrud: React.FC = () => {
               <TableCell>Actualizado En</TableCell>
               <TableCell>ID Organización</TableCell>
               <TableCell>ID Sitio</TableCell>
+              <TableCell>Host</TableCell>
+              <TableCell>Puerto</TableCell>
+              <TableCell>Usuario</TableCell>
               <TableCell>Tipo</TableCell>
+              <TableCell>Virificación SSL</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
@@ -252,7 +307,11 @@ const SiteCrud: React.FC = () => {
                 </TableCell>
                 <TableCell>{item.idOrganization}</TableCell>
                 <TableCell>{item.siteId}</TableCell>
+                <TableCell>{item.host}</TableCell>
+                <TableCell>{item.port}</TableCell>
+                <TableCell>{item.username}</TableCell>
                 <TableCell>{item.type}</TableCell>
+                <TableCell>{item.sslverify}</TableCell>
                 <TableCell>
                   <Button
                     variant="contained"
