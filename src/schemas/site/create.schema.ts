@@ -6,6 +6,11 @@ export interface CreateSite {
   type: SiteType;
   siteId?: string;
   name: string;
+  host: string;
+  port: string;
+  username: string;
+  password: string;
+  sslverify: boolean;
 }
 
 export const Create = Joi.object<CreateSite>({
@@ -24,4 +29,19 @@ export const Create = Joi.object<CreateSite>({
   name: Joi.string()
     .required()
     .description("The name associated with the site"),
+  host: Joi.string()
+    .required()
+    .description("The host of the site"),
+  port: Joi.string()
+    .required()
+    .description("The port of the site"),
+  username: Joi.string()
+    .required()
+    .description("The username of the site"),
+  password: Joi.string()
+    .required()
+    .description("The password of the site"),
+  sslverify: Joi.boolean()
+    .required()
+    .description("The sslverify of the site"),
 });

@@ -78,7 +78,7 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
           >
             {organizations.map((org) => (
               <MenuItem key={org._id} value={org._id}>
-                {org._id}
+                {org.name}
               </MenuItem>
             ))}
           </Select>

@@ -32,7 +32,7 @@ const login = async (body: any) => {
       id: client._id,
       name: client.name,
      }, TOKEN_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "24h",
     });
 
     // Return response

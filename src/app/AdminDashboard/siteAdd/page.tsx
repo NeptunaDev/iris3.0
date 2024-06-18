@@ -156,9 +156,13 @@ const SiteCrud: React.FC = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ idOrganization, type, name, siteId }),
+        body: JSON.stringify({
+          idOrganization,
+          type: type.toLowerCase(),
+          name,
+          siteId,
+        }),
       });
-      console.log(response)
       const newData = await response.json();
       if (newData.status === 200) {
         setData((prev) => {
@@ -171,12 +175,12 @@ const SiteCrud: React.FC = () => {
       }
       setModalOpen(false);
     } catch (error) {
-      console.log(error, "no se pudo");
+      console.log("🚀 ~ handleSubmit ~ error:", error);
     }
   };
 
   const handleUpdate = async () => {
-    const {type, siteId, name} = currentData;
+    const { type, name } = currentData;
     try {
       const response = await fetch(`/api/site/${currentData._id}`, {
         method: "PATCH",
@@ -184,13 +188,15 @@ const SiteCrud: React.FC = () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({type, siteId, name})
+        body: JSON.stringify({ type, name }),
       });
       console.log(response);
+      const data = await response.json();
+      console.log("🚀 ~ handleUpdate ~ data:", data)
     } catch (error) {
-     console.log(error, "no pudo") 
+      console.log(error, "no pudo");
     }
-  }
+  };
 
   const handleDelete = async () => {
     try {
@@ -199,10 +205,10 @@ const SiteCrud: React.FC = () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      console.log(response)
+      });
+      console.log(response);
     } catch (error) {
-      console.log(error, "No fue Posible Eliminar el Site")
+      console.log(error, "No fue Posible Eliminar el Site");
     }
     setData((prev) => prev.filter((item) => item._id !== currentData._id));
     setDeleteOpen(false);

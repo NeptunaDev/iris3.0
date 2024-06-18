@@ -1,9 +1,15 @@
-import SiteModel from "@/models/Site.models";
 import { NextResponse } from "next/server";
+
+import SiteModel from "@/models/Site.models";
+import { encryptText } from "@/utils/crypto/crypto";
 
 export const create = async (body: any) => {
   try {
-    const newSite = new SiteModel(body);
+    console.log(body)
+    const newSite = new SiteModel({
+      ...body,
+      password: encryptText(body.password) 
+    });
     const site = await newSite.save();
 
     return NextResponse.json(

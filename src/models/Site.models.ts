@@ -10,6 +10,11 @@ export interface Site extends Document {
   type: SiteType;
   siteId: string;
   name: string;
+  host: string;
+  port: string;
+  username: string;
+  password: string;
+  sslverify: boolean;
 }
 
 const SiteSchema = new Schema<Site>(
@@ -33,6 +38,26 @@ const SiteSchema = new Schema<Site>(
       type: String,
       required: true,
     },
+    host: {
+      type: String,
+      required: true,
+    },
+    port: {
+      type: String,
+      required: true,
+    },
+    username: {
+      type: String,
+      required: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    sslverify: {
+      type: Boolean,
+      required: true,
+    }
   },
   {
     timestamps: true,
