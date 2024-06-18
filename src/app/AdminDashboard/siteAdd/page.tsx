@@ -216,7 +216,6 @@ const SiteCrud: React.FC = () => {
       host,
       port,
       username,
-      password,
       sslverify,
     } = currentData;
     try {
@@ -232,7 +231,6 @@ const SiteCrud: React.FC = () => {
           host,
           port,
           username,
-          password,
           sslverify,
         }),
       });

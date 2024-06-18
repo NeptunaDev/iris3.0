@@ -23,38 +23,25 @@ const UniqueDevicesCard = () => {
   const token = getCookie("token");
 
   useEffect(() => {
-    if (typeof token === "string") {
-      const decoded = jwtDecode<MyJwtPayload>(token);
-
-      const { id } = decoded;
-
-      const url = `/api/controller?idClient=${id}`;
-
-      // Realizar la solicitud fetch
-      fetch(url)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then(async (data) => {
-          const idToSend = data.data[0]._id;
-
-          // Realizar la segunda solicitud fetch usando idToSend
-          const url2 = `/api/view/unique-devices?idController=${idToSend}`;
-
-          const response = await fetch(url2);
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          const data_1 = await response.json();
-          setUniqueDevices(data_1.data);
-        })
-        .catch((error) => {
-          console.error("Hubo un problema con la petición fetch:", error);
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`/api/view/unique-devices` ,{
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-    }
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.status}`);
+        }
+        const result = await response.json();
+        setUniqueDevices(result.data)
+      } catch (error) {
+        console.log(error, "No se pudo consultar la vista")
+      }
+    };
+
+    fetchData();
   }, [token]);
 
   return (
@@ -67,7 +54,7 @@ const UniqueDevicesCard = () => {
         }
         title={
           <Typography variant="h6" component="div">
-            Dispositivos unicos:
+            Dispositivos Unicos:
           </Typography>
         }
       />

@@ -33,6 +33,7 @@ interface CreateUpdateModalProps {
     mac: string;
     createdAt: string;
     updatedAt: string;
+    name: string;
     __v: number;
   };
   handleChange: (
@@ -75,6 +76,14 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
             ))}
           </Select>
         </FormControl>
+        <TextField
+          label="Nombre"
+          name="name"
+          value={data.name}
+          onChange={handleChange}
+          fullWidth
+          margin="normal"
+        />
         <TextField
           label="MAC"
           name="mac"

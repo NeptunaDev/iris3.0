@@ -19,34 +19,19 @@ const PortalViewCard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (typeof token === "string") {
-          const decoded = jwtDecode<MyJwtPayload>(token);
-
-          const { id } = decoded;
-
-          const url = `/api/controller?idClient=${id}`;
-          const response1 = await fetch(url);
-
-          if (!response1.ok) {
-            throw new Error("Network response was not ok");
-          }
-
-          const data1 = await response1.json();
-          const idToSend = data1.data[0]._id;
-
-          const url2 = `/api/view?idController=${idToSend}`;
-          const response2 = await fetch(url2);
-
-          if (!response2.ok) {
-            throw new Error("Network response was not ok");
-          }
-
-          const data2 = await response2.json();
-          console.log("Datos recibidos del segundo endpoint:", data2);
-          setViewPortal(data2.data);
+        const response = await fetch(`/api/view` ,{
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.status}`);
         }
+        const result = await response.json();
+        setViewPortal(result.data)
       } catch (error) {
-        console.error("Hubo un problema con la petición fetch:", error);
+        console.log(error, "No se pudo consultar la vista")
       }
     };
 

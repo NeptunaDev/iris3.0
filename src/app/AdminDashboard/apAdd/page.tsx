@@ -23,6 +23,7 @@ interface DataItem {
   mac: string;
   createdAt: string;
   updatedAt: string;
+  name: string;
   __v: number;
 }
 
@@ -48,6 +49,7 @@ const ApCrud: React.FC = () => {
     mac: "",
     createdAt: "",
     updatedAt: "",
+    name: "",
     __v: 0,
   });
   const [isUpdate, setIsUpdate] = useState(false);
@@ -107,6 +109,7 @@ const ApCrud: React.FC = () => {
       mac: "",
       createdAt: "",
       updatedAt: "",
+      name: "",
       __v: 0,
     });
     setIsUpdate(false);
@@ -133,16 +136,18 @@ const ApCrud: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      const { mac, idSite } = currentData;
+      const { mac, idSite, name } = currentData;
       const response = await fetch("/api/ap", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ mac, idSite }),
+        body: JSON.stringify({ mac, idSite, name }),
       });
+      console.log(response)
       const newData = await response.json();
+      console.log("🚀 ~ handleSubmit ~ newData:", newData)
       if (newData.status === 200) {
         setData((prev) => {
           const exists = prev.some((item) => item._id === newData.data._id);

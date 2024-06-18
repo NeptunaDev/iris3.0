@@ -180,7 +180,7 @@ const ControllerCrud: React.FC = () => {
 
   return (
     <Container sx={{ backgroundColor: "#fff", borderRadius: "20px" }}>
-      <h1>Crear Proyectos</h1>
+      <h1>Crear Organización</h1>
       <Button variant="contained" color="primary" onClick={handleOpenCreate}>
         Crear
       </Button>
