@@ -111,7 +111,6 @@ export default function PortalCautive({ params }: Params) {
   };
 
   const sendForm = async () => {
-    return;
     const responseConn = await fetch(`/api/connecting`, {
       method: "POST",
       headers: {
@@ -121,6 +120,7 @@ export default function PortalCautive({ params }: Params) {
         id: queries.id.replaceAll("%3A", ":"),
         ap: queries.ap.replaceAll("%3A", ":"),
         site: params.id,
+        idSite: site._id,
       }),
     });
     if (!responseConn.ok) {
