@@ -3,6 +3,7 @@ import { Model, Schema, model, models } from "mongoose";
 export interface AP extends Document {
   idSite: Schema.Types.ObjectId;
   mac: string;
+  name: string;
 }
 
 const APSchema = new Schema<AP>(
@@ -17,6 +18,10 @@ const APSchema = new Schema<AP>(
       required: true,
       unique: true,
       index: true,
+    },
+    name: {
+      type: String,
+      required: true,
     },
   },
   {
