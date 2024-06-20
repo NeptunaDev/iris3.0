@@ -1,10 +1,15 @@
 import SiteModel from "@/models/Site.models";
+import { encryptText } from "@/utils/crypto/crypto";
 
 import { NextResponse } from "next/server";
 
 export const update = async (body: any, id: string) => {
   try {
-    const siteUpdated = await SiteModel.findByIdAndUpdate(id, body, {
+    const newBody = {
+      ...body,
+      ...(body.password && { password: encryptText(body.password) }),
+    };
+    const siteUpdated = await SiteModel.findByIdAndUpdate(id, newBody, {
       new: true,
     });
     return NextResponse.json(

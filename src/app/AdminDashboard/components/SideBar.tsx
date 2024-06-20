@@ -117,19 +117,19 @@ const Sidebar: React.FC<Props> = ({ window }) => {
             icon: <FaTachometerAlt />,
             path: "/AdminDashboard",
           },
+          // {
+          //   text: "Portales Cautivos",
+          //   icon: <FaNetworkWired />,
+          //   path: "/AdminDashboard/portalCautive",
+          // },
           {
-            text: "Portales Cautivos",
-            icon: <FaNetworkWired />,
-            path: "/AdminDashboard/portalCautive",
-          },
-          {
-            text: "Proyectos",
+            text: "Organizaciones",
             icon: <FaSlidersH />,
             path: "/AdminDashboard/controllersAdd",
           },
           { text: "Sites", icon: <FaUsers />, path: "/AdminDashboard/siteAdd" },
           { text: "AP", icon: <FaWifi />, path: "/AdminDashboard/apAdd" },
-          { text: "Vistas", icon: <RiTableView />, path: "/AdminDashboard/viewPage" },
+          // { text: "Vistas", icon: <RiTableView />, path: "/AdminDashboard/viewPage" },
         ].map((item, index) => (
           <ListItem
             button

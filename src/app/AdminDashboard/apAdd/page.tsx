@@ -23,6 +23,7 @@ interface DataItem {
   mac: string;
   createdAt: string;
   updatedAt: string;
+  name: string;
   __v: number;
 }
 
@@ -48,6 +49,7 @@ const ApCrud: React.FC = () => {
     mac: "",
     createdAt: "",
     updatedAt: "",
+    name: "",
     __v: 0,
   });
   const [isUpdate, setIsUpdate] = useState(false);
@@ -107,6 +109,7 @@ const ApCrud: React.FC = () => {
       mac: "",
       createdAt: "",
       updatedAt: "",
+      name: "",
       __v: 0,
     });
     setIsUpdate(false);
@@ -133,15 +136,16 @@ const ApCrud: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      const { mac, idSite } = currentData;
+      const { mac, idSite, name } = currentData;
       const response = await fetch("/api/ap", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ mac, idSite }),
+        body: JSON.stringify({ mac, idSite, name }),
       });
+
       const newData = await response.json();
       if (newData.status === 200) {
         setData((prev) => {
@@ -185,11 +189,11 @@ const ApCrud: React.FC = () => {
         body: JSON.stringify({ mac }),
       });
       console.log(response);
+      const updatedData = await response.json();
+      console.log("🚀 ~ handleUpdate ~ updatedData:", updatedData)
       if (!response.ok) {
         throw new Error("Error al actualizar los datos");
       }
-
-      const updatedData = await response.json();
       setData((prev) =>
         prev.map((item) => (item._id === currentData._id ? updatedData : item))
       );
@@ -215,6 +219,7 @@ const ApCrud: React.FC = () => {
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
+              <TableCell>Nombre</TableCell>
               <TableCell>Id Site</TableCell>
               <TableCell>MAC</TableCell>
               <TableCell>Acciones</TableCell>
@@ -224,6 +229,7 @@ const ApCrud: React.FC = () => {
             {data.map((item) => (
               <TableRow key={item._id}>
                 <TableCell>{item._id}</TableCell>
+                <TableCell>{item.name}</TableCell>
                 <TableCell>{item.idSite}</TableCell>
                 <TableCell>{item.mac}</TableCell>
                 <TableCell>
