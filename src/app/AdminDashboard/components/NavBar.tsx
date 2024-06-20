@@ -1,56 +1,88 @@
 // src/components/NavBar.tsx
-import React from 'react';
-import { AppBar, Box, IconButton, InputBase, Menu, MenuItem, Badge, Typography, Toolbar, Avatar, Divider, ListItemIcon } from '@mui/material';
-import { styled, alpha } from '@mui/material/styles';
-import { FaBell, FaUserCircle, FaSignOutAlt, FaUser } from 'react-icons/fa';
-import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
-import { deleteCookie } from 'cookies-next';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from "react";
+import {
+  AppBar,
+  Box,
+  IconButton,
+  InputBase,
+  Menu,
+  MenuItem,
+  Badge,
+  Typography,
+  Toolbar,
+  Avatar,
+  Divider,
+  ListItemIcon,
+} from "@mui/material";
+import { styled, alpha } from "@mui/material/styles";
+import { FaBell, FaUserCircle, FaSignOutAlt, FaUser } from "react-icons/fa";
+import MenuIcon from "@mui/icons-material/Menu";
+import SearchIcon from "@mui/icons-material/Search";
+import { deleteCookie, getCookie } from "cookies-next";
+import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
-const Search = styled('div')(({ theme }) => ({
-  position: 'relative',
+const Search = styled("div")(({ theme }) => ({
+  position: "relative",
   borderRadius: theme.shape.borderRadius,
   backgroundColor: alpha(theme.palette.common.white, 0.15),
-  '&:hover': {
+  "&:hover": {
     backgroundColor: alpha(theme.palette.common.white, 0.25),
   },
   marginRight: theme.spacing(2),
   marginLeft: 0,
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
+  width: "100%",
+  [theme.breakpoints.up("sm")]: {
     marginLeft: theme.spacing(3),
-    width: 'auto',
+    width: "auto",
   },
 }));
 
-const SearchIconWrapper = styled('div')(({ theme }) => ({
+const SearchIconWrapper = styled("div")(({ theme }) => ({
   padding: theme.spacing(0, 2),
-  height: '100%',
-  position: 'absolute',
-  pointerEvents: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  height: "100%",
+  position: "absolute",
+  pointerEvents: "none",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: 'inherit',
-  '& .MuiInputBase-input': {
+  color: "inherit",
+  "& .MuiInputBase-input": {
     padding: theme.spacing(1, 1, 1, 0),
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create('width'),
-    width: '100%',
-    [theme.breakpoints.up('md')]: {
-      width: '20ch',
+    transition: theme.transitions.create("width"),
+    width: "100%",
+    [theme.breakpoints.up("md")]: {
+      width: "20ch",
     },
   },
 }));
 
-const NavBar: React.FC<{ handleDrawerToggle: () => void }> = ({ handleDrawerToggle }) => {
+interface MyJwtPayload {
+  id: string;
+  name: string;
+  iat: number;
+  exp: number;
+}
+
+const NavBar: React.FC<{ handleDrawerToggle: () => void }> = ({
+  handleDrawerToggle,
+}) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
-  const router = useRouter()
+  const router = useRouter();
+  const token = getCookie("token");
+  const [name, setName] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof token === "string") {
+      const decoded = jwtDecode<MyJwtPayload>(token);
+      setName(decoded.name);
+    }
+  }, [token]);
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -61,33 +93,33 @@ const NavBar: React.FC<{ handleDrawerToggle: () => void }> = ({ handleDrawerTogg
   };
 
   const handleLogout = () => {
-    deleteCookie('token')
-    router.push('/')
-  }
+    deleteCookie("token");
+    router.push("/");
+  };
 
-  const menuId = 'primary-search-account-menu';
+  const menuId = "primary-search-account-menu";
   const renderMenu = (
     <Menu
       anchorEl={anchorEl}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       id={menuId}
       keepMounted
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      transformOrigin={{ vertical: "top", horizontal: "right" }}
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
       <Box sx={{ padding: 2 }}>
         <Typography variant="h6" noWrap>
-          Netmask
+          {name}
         </Typography>
       </Box>
       <Divider />
-      <MenuItem onClick={handleMenuClose}>
+      {/* <MenuItem onClick={handleMenuClose}>
         <ListItemIcon>
           <FaUser />
         </ListItemIcon>
         Perfil
-      </MenuItem>
+      </MenuItem> */}
       <MenuItem onClick={handleLogout}>
         <ListItemIcon>
           <FaSignOutAlt />
@@ -113,12 +145,12 @@ const NavBar: React.FC<{ handleDrawerToggle: () => void }> = ({ handleDrawerTogg
             </IconButton>
           </Box>
           <Box display="flex" alignItems="center">
-            <IconButton size="large" aria-label="show new notifications" color="inherit">
+            {/* <IconButton size="large" aria-label="show new notifications" color="inherit">
               <Badge badgeContent={17} color="error">
                 <FaBell style={{ fontSize: '1.2rem' }} />
               </Badge>
-            </IconButton>
-            <Search>
+            </IconButton> */}
+            {/* <Search>
               <SearchIconWrapper>
                 <SearchIcon />
               </SearchIconWrapper>
@@ -126,7 +158,7 @@ const NavBar: React.FC<{ handleDrawerToggle: () => void }> = ({ handleDrawerTogg
                 placeholder="Buscar…"
                 inputProps={{ 'aria-label': 'search' }}
               />
-            </Search>
+            </Search> */}
             <IconButton
               size="large"
               edge="end"
@@ -136,7 +168,7 @@ const NavBar: React.FC<{ handleDrawerToggle: () => void }> = ({ handleDrawerTogg
               onClick={handleProfileMenuOpen}
               color="inherit"
             >
-              <Avatar sx={{ width: 30, height: 30 }}>N</Avatar>
+              <Avatar sx={{ width: 30, height: 30 }}/>
             </IconButton>
           </Box>
         </Toolbar>

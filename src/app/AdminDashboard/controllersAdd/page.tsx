@@ -1,160 +1,247 @@
+// src/App.tsx
 "use client";
-import React, { useEffect, useState } from "react";
-import { JwtPayload, jwtDecode } from "jwt-decode";
-import { getCookie } from "cookies-next";
+import React, { useState, useEffect } from "react";
 import {
-  Grid,
-  Paper,
-  TextField,
+  Container,
   Button,
-  Typography,
-  CssBaseline,
-  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from "@mui/material";
-import BasicTable from "../components/TableList";
+import CreateUpdateModal from "./components/CreateUpdateModal";
+import DeleteConfirmation from "./components/DeleteConfirmation";
+import { getCookie } from "cookies-next";
 
-interface PersonalToken extends JwtPayload {
-  id: string;
-}
-
- export interface Controller {
+interface DataItem {
   _id: string;
-  ap: string;
-  site: string;
+  name: string;
+  createdAt: string;
+  idClient: string;
 }
 
 const ControllerCrud: React.FC = () => {
+  const [data, setData] = useState<DataItem[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [currentData, setCurrentData] = useState<DataItem>({
+    _id: "",
+    name: "",
+    createdAt: "",
+    idClient: "",
+  });
+  const [isUpdate, setIsUpdate] = useState(false);
   const token = getCookie("token");
-  let idClient: string | undefined;
-  const [ap, setAp] = useState("");
-  const [site, setSite] = useState("");
-  const [controllers, setControllers] = useState<Controller[]>([]);
 
-  if (token) {
-    const decodedToken = jwtDecode<PersonalToken>(token);
-    idClient = decodedToken.id;
-  }
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
-  const handleCreate = async () => {
-    if (idClient) {
-      const body = {
-        idClient: idClient,
-        ap: ap,
-        site: site,
-      };
-      const JSONdata = JSON.stringify(body);
+  const fetchProjects = async () => {
+    if (!token) {
+      console.error("Token is missing!");
+      return;
+    }
+    try {
+      const response = await fetch("/api/organization", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Network response was not ok: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setData(result.data);
+    } catch (error) {
+      console.error("There was a problem with the fetch operation:", error);
+    }
+  };
+
+  const handleOpenCreate = () => {
+    setCurrentData({ _id: "", name: "", createdAt: "", idClient: "" });
+    setIsUpdate(false);
+    setModalOpen(true);
+  };
+
+  const handleOpenUpdate = (item: DataItem) => {
+    setCurrentData(item);
+    setIsUpdate(true);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => setModalOpen(false);
+  const handleCloseDelete = () => setDeleteOpen(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCurrentData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
+    if (isUpdate) {
+      await handleUpdate();
+    } else {
+      if (!token) {
+        console.error("Token is missing!");
+        return;
+      }
+
       try {
-        const response = await fetch("/api/controller", {
-          body: JSONdata,
+        const response = await fetch("/api/organization", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
+          body: JSON.stringify({ name: currentData.name }),
         });
-        console.log("🚀 ~ handleCreate ~ response:", response);
-        if (response.ok) {
-          const data = await response.json();
-          console.log("🚀 ~ handleCreate ~ data:", data.data);
-          setControllers([...controllers, data.data]);
-          setAp("");
-          setSite("");
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
         }
+
+        const result = await response.json();
+        setData((prev) => [...prev, { ...currentData, _id: result._id }]);
       } catch (error) {
-        console.log("Error en la solicitud:", error);
+        console.error("There was a problem with the fetch operation:", error);
       }
     }
+    setModalOpen(false);
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`/api/controller?idClient=${idClient}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        console.log("🚀 ~ fetchData ~ response:", response);
-        if (response.ok) {
-          const data = await response.json();
-          setControllers(data.data);
-        }
-      } catch (error) {
-        console.log("Error en la solicitud:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleDelete = async (id: string) => {
-    const body = {
-      id 
-    };
-    const JSONdata = JSON.stringify(body);
-    try {
-      const response = await fetch("/api/controller", {
-        body: JSONdata,
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      console.log("🚀 ~ handleDelete ~ response:", response)
-      if (response.ok) {
-         setControllers((prev) => (
-          prev.filter((controller) => controller._id !== id)
-         ))
-      }
-    } catch (error) {
-      console.log("Error en la solicitud:", error);
+  const handleDelete = async () => {
+    if (!token) {
+      console.error("Token is missing!");
+      return;
     }
+
+    try {
+      const response = await fetch(`/api/organization/${currentData._id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      // Actualizar el estado para eliminar el proyecto localmente
+      setData((prev) => prev.filter((item) => item._id !== currentData._id));
+    } catch (error) {
+      console.error('There was a problem with the fetch operation:', error);
+    }
+
+    setDeleteOpen(false);
+  };
+
+  const handleUpdate = async () => {
+    if (!token) {
+      console.error("Token is missing!");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/organization/${currentData._id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ name: currentData.name }),
+      });
+      console.log(response)
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      setData((prev) =>
+        prev.map((item) => (item._id === currentData._id ? currentData : item))
+      );
+    } catch (error) {
+      console.error('There was a problem with the fetch operation:', error);
+    }
+
+    setModalOpen(false);
+  };
+
+  const handleOpenDelete = (item: DataItem) => {
+    setCurrentData(item);
+    setDeleteOpen(true);
   };
 
   return (
-    <Stack
-      sx={{
-        minHeight: "100vh",
-      }}
-      justifyContent={"center"}
-      alignItems={"center"}
-    >
-      <Grid container justifyContent="center">
-        <Grid item xs={12} sm={8} md={6}>
-          <Paper elevation={3} sx={{ padding: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
-              Create Controller
-            </Typography>
-            <TextField
-              label="AP"
-              fullWidth
-              value={ap}
-              onChange={(e) => setAp(e.target.value)}
-              sx={{ marginBottom: 2 }}
-            />
-            <TextField
-              label="Site"
-              fullWidth
-              value={site}
-              onChange={(e) => setSite(e.target.value)}
-              sx={{ marginBottom: 2 }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleCreate}
-              sx={{ marginRight: 2 }}
-            >
-              Create
-            </Button>
-          </Paper>
-          <Typography variant="h5" sx={{ marginTop: 3 }}>
-            Controllers
-          </Typography>
-          <BasicTable data={controllers} onDelete={handleDelete} />
-        </Grid>
-      </Grid>
-    </Stack>
+    <Container sx={{ backgroundColor: "#fff", borderRadius: "20px" }}>
+      <h1>Crear Organización</h1>
+      <Button variant="contained" color="primary" onClick={handleOpenCreate}>
+        Crear
+      </Button>
+      <TableContainer component={Paper} sx={{ mt: 2, mb: 3 }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Nombre</TableCell>
+              <TableCell>Creado En</TableCell>
+              <TableCell>ID Cliente</TableCell>
+              <TableCell>Acciones</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((item) => (
+              <TableRow key={item._id}>
+                <TableCell>{item._id}</TableCell>
+                <TableCell>{item.name}</TableCell>
+                <TableCell>
+                  {new Date(item.createdAt).toLocaleString()}
+                </TableCell>
+                <TableCell>{item.idClient}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => handleOpenUpdate(item)}
+                    sx={{ mr: 1 }}
+                  >
+                    Actualizar
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={() => handleOpenDelete(item)}
+                  >
+                    Eliminar
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <CreateUpdateModal
+        open={modalOpen}
+        handleClose={handleCloseModal}
+        data={currentData}
+        handleChange={handleChange}
+        handleSubmit={handleSubmit}
+        isUpdate={isUpdate}
+      />
+
+      <DeleteConfirmation
+        open={deleteOpen}
+        handleClose={handleCloseDelete}
+        handleDelete={handleDelete}
+      />
+    </Container>
   );
 };
 

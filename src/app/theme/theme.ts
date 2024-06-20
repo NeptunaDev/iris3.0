@@ -1,27 +1,43 @@
 'use client';
-import { Roboto } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { createTheme } from '@mui/material/styles';
 
-const roboto = Roboto({
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-});
+const colors = {
+  dark: "#0C0C0C",
+  surface: "#ffffff",
+  surfaceMiddle: "",
+  darkGray: "#424242",
+  surfaceLight: "#ECECEC",
+  surfaceDark: "#DADADA"
+}
 
 const theme = createTheme({
   typography: {
-    fontFamily: roboto.style.fontFamily,
+    fontFamily: 'Inter, sans-serif',
     h1: {
-      fontSize: '2.5rem',
+      fontSize: '35px',
       fontWeight: 700,
+      lineHeight: 1.5
     },
     h2: {
       fontSize: '2rem',
       fontWeight: 700,
+      lineHeight: 1.5
+    },
+    h3: {
+      fontSize: '1.5rem',
+      fontWeight: 700,
+      lineHeight: 1.5
+    },
+    h4: {
+      fontSize: '14px',
+      fontWeight: 700,
+      lineHeight: 1.5
     },
     body1: {
       fontSize: '1rem',
       fontWeight: 400,
+      lineHeight: 1.5
     },
   },
   palette: {
@@ -38,22 +54,14 @@ const theme = createTheme({
       contrastText: '#fff',
     },
     error: {
-      main: '#f44336',
+      main: '#F51100',
     },
     warning: {
       main: '#ff9800',
+      contrastText: '#fff',
     },
     success: {
       main: '#4caf50',
-    },
-  },
-  breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 960,
-      lg: 1280,
-      xl: 1920,
     },
   },
   spacing: 8,
@@ -81,7 +89,7 @@ const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          backgroundColor: '#f4f6f8',
+          backgroundColor: '#ECECEC',
         },
       },
     },

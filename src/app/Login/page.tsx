@@ -80,10 +80,9 @@ const SignInForm: React.FC = () => {
           "Content-Type": "application/json",
         },
       });
-      console.log(response);
+      
       if (response.ok) {
         const data = await response.json();
-        console.log("🚀 ~ handleSubmit ~ data:", data)
         setCookie("token", data.data.token);
         router.push("/AdminDashboard");
       } else {
@@ -134,7 +133,7 @@ const SignInForm: React.FC = () => {
           <Stack>
             <Stack spacing={4}>
               <Stack>
-                <Typography variant="h4" fontWeight={600}>
+                <Typography variant="h1" fontWeight={600}>
                   Bienvenido a Iris! 👋🏻
                 </Typography>
                 <Typography sx={{ mt: "15px" }}>
@@ -192,11 +191,11 @@ const SignInForm: React.FC = () => {
                         ),
                       }}
                     />
-                    <Link href="/reset-password">
+                    {/* <Link href="/reset-password">
                       <Typography sx={{ textDecoration: "none" }}>
                         Olvidaste tu Contraseña?
                       </Typography>
-                    </Link>
+                    </Link> */}
                     <Button
                       variant="contained"
                       color="primary"
@@ -207,7 +206,7 @@ const SignInForm: React.FC = () => {
                       Ingresar
                     </Button>
                   </Stack>
-                  <Stack direction="row" spacing={2} justifyContent="center">
+                  {/* <Stack direction="row" spacing={2} justifyContent="center">
                     <Typography>No tienes una Cuenta?</Typography>
                     <Typography
                       fontWeight={600}
@@ -218,7 +217,7 @@ const SignInForm: React.FC = () => {
                     >
                       Registrate ahora!
                     </Typography>
-                  </Stack>
+                  </Stack> */}
                 </Stack>
               </Stack>
             </Stack>
