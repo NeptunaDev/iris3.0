@@ -22,15 +22,9 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const resValidateSchema = validateSchema(body, CreateOrganizationSchema);
-    if (resValidateSchema) return validateSchema;
+    if (resValidateSchema) return resValidateSchema;
 
     const res = await createOrganization(body, jwt as JwtPayload);
-    if (res instanceof Error)
-      return NextResponse.json(
-        { error: res.message, status: 500 },
-        { status: 500 }
-      );
-
     return res;
   } catch (error) {
     if (error instanceof Error) {

@@ -18,7 +18,10 @@ export const create = async (body: any, jwt: JwtPayload) => {
     );
   } catch (error) {
     if (error instanceof Error) {
-      return new Error(error.message);
+      return NextResponse.json(
+        { error: error.message, status: 500 },
+        { status: 500 }
+      );
     }
   }
 };
