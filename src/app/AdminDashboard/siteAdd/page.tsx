@@ -1,6 +1,11 @@
 // src/App.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  ChangeEventHandler,
+  ChangeEvent,
+} from "react";
 import {
   Container,
   Button,
@@ -32,7 +37,7 @@ interface DataItem {
   sslverify: string;
 }
 
-interface Organization {
+export interface Organization {
   id: string;
   name: string;
   _id: string;
@@ -143,21 +148,23 @@ const SiteCrud: React.FC = () => {
   const handleCloseModal = () => setModalOpen(false);
   const handleCloseDelete = () => setDeleteOpen(false);
 
-  const handleChange = (
+  const handleChange: ChangeEventHandler<
+    HTMLInputElement | HTMLTextAreaElement
+  > = (e) => {
+    const { name, value } = e.target;
+    setCurrentData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (
     e:
-      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
       | SelectChangeEvent<string>
   ) => {
     const { name, value } = e.target;
     setCurrentData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target;
-    setCurrentData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleTypeChange = (e: React.ChangeEvent<{ value: unknown }>) => {
+  const handleTypeChange = (e: SelectChangeEvent<string>) => {
     const value = e.target.value as string;
     setCurrentData((prev) => ({ ...prev, type: value }));
   };
@@ -210,14 +217,7 @@ const SiteCrud: React.FC = () => {
   };
 
   const handleUpdate = async () => {
-    const {
-      type,
-      name,
-      host,
-      port,
-      username,
-      sslverify,
-    } = currentData;
+    const { type, name, host, port, username, sslverify } = currentData;
     try {
       const response = await fetch(`/api/site/${currentData._id}`, {
         method: "PATCH",
@@ -236,16 +236,17 @@ const SiteCrud: React.FC = () => {
       });
       const newData = await response.json();
       if (newData.status === 200) {
-        setData((prev) => prev.map((item) => 
-          item._id === newData.data._id ? newData.data : item
-        ));
+        setData((prev) =>
+          prev.map((item) =>
+            item._id === newData.data._id ? newData.data : item
+          )
+        );
         setModalOpen(false);
       }
     } catch (error) {
       console.log(error, "no pudo");
     }
   };
-  
 
   const handleDelete = async () => {
     try {

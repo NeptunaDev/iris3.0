@@ -11,6 +11,7 @@ import {
   InputLabel,
 } from "@mui/material";
 import { SelectChangeEvent } from "@mui/material";
+import { SiteItem } from "../page";
 
 const style = {
   position: "absolute" as "absolute",
@@ -43,7 +44,7 @@ interface CreateUpdateModalProps {
   ) => void;
   handleSubmit: () => void;
   isUpdate: boolean;
-  siteOptions: string[];
+  siteOptions: SiteItem[];
 }
 
 const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({

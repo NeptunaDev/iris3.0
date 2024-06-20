@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ChangeEvent, ChangeEventHandler } from "react";
 import {
   Modal,
   Box,
@@ -11,13 +11,14 @@ import {
   SelectChangeEvent,
   Grid,
 } from "@mui/material";
+import { Organization } from "../page";
 
 const style = {
   position: "absolute" as "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width:  { xs: '90%', sm: '80%', md: '60%', lg: '50%' },
+  width: { xs: "90%", sm: "80%", md: "60%", lg: "50%" },
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
@@ -40,16 +41,16 @@ interface CreateUpdateModalProps {
     password: string;
     sslverify: string;
   };
-  handleChange: (
-    e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
-  ) => void;
+  handleChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
   handleSelectChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+    e:
+      | ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | SelectChangeEvent<string>
   ) => void;
   handleTypeChange: (event: SelectChangeEvent<string>) => void;
   handleSubmit: () => void;
   isUpdate: boolean;
-  organizations: { id: string; name: string; _id: string; idOrganization: string; }[];
+  organizations: Organization[];
 }
 
 const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
