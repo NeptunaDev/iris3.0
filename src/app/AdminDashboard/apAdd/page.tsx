@@ -145,9 +145,8 @@ const ApCrud: React.FC = () => {
         },
         body: JSON.stringify({ mac, idSite, name }),
       });
-      console.log(response)
+
       const newData = await response.json();
-      console.log("🚀 ~ handleSubmit ~ newData:", newData)
       if (newData.status === 200) {
         setData((prev) => {
           const exists = prev.some((item) => item._id === newData.data._id);
@@ -190,11 +189,11 @@ const ApCrud: React.FC = () => {
         body: JSON.stringify({ mac }),
       });
       console.log(response);
+      const updatedData = await response.json();
+      console.log("🚀 ~ handleUpdate ~ updatedData:", updatedData)
       if (!response.ok) {
         throw new Error("Error al actualizar los datos");
       }
-
-      const updatedData = await response.json();
       setData((prev) =>
         prev.map((item) => (item._id === currentData._id ? updatedData : item))
       );
@@ -220,6 +219,7 @@ const ApCrud: React.FC = () => {
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
+              <TableCell>Nombre</TableCell>
               <TableCell>Id Site</TableCell>
               <TableCell>MAC</TableCell>
               <TableCell>Acciones</TableCell>
@@ -229,6 +229,7 @@ const ApCrud: React.FC = () => {
             {data.map((item) => (
               <TableRow key={item._id}>
                 <TableCell>{item._id}</TableCell>
+                <TableCell>{item.name}</TableCell>
                 <TableCell>{item.idSite}</TableCell>
                 <TableCell>{item.mac}</TableCell>
                 <TableCell>
