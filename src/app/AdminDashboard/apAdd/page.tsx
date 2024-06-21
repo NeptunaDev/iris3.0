@@ -27,7 +27,7 @@ interface DataItem {
   __v: number;
 }
 
-interface SiteItem {
+export interface SiteItem {
   _id: string;
   idOrganization: string;
   name: string;
