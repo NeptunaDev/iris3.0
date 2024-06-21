@@ -17,6 +17,8 @@ import {
 import { getQueries } from "@/utils/api/request/getQueries";
 import { verifyJwt } from "@/middlewares/jwt/verifyJwt.middleware";
 import { JwtPayload } from "jsonwebtoken";
+import connectDB from "@/configuration/db";
+connectDB();
 
 // Get view
 export async function GET(req: NextRequest) {
