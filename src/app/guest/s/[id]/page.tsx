@@ -111,7 +111,7 @@ export default function PortalCautive({ params }: Params) {
   };
 
   const sendForm = async () => {
-    const responseConn = await fetch(`/api/connecting`, {
+    const responseConn = await fetch(`https://api-iris-0yax.onrender.com/api/v1/ubiquiti/connecting`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -149,7 +149,7 @@ export default function PortalCautive({ params }: Params) {
   // Fetch site
   useEffect(() => {
     async function fetchUbiquitiData() {
-      const endpoint = `/api/ubiquiti?type=SITE&siteId=${params.id}`;
+      const endpoint = `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/site?siteId=${params.id}`;
       try {
         const response = await fetch(endpoint);
         if (!response.ok) {
@@ -180,10 +180,9 @@ export default function PortalCautive({ params }: Params) {
     const getData = async () => {
       try {
         const response = await fetch(
-          `/api/ubiquiti?type=AP&siteId=${site._id}&mac=${queries.ap.replaceAll(
-            "%3A",
-            ":"
-          )}`,
+          `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/ap?idSite=${
+            site._id
+          }&mac=${queries.ap.replaceAll("%3A", ":")}`,
           {
             method: "GET",
             headers: {
