@@ -111,7 +111,7 @@ export default function PortalCautive({ params }: Params) {
   };
 
   const sendForm = async () => {
-    const responseConn = await fetch(`/api/connecting`, {
+    const responseConn = await fetch(`https://api-iris-0yax.onrender.com/api/v1/ubiquiti/connecting`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
