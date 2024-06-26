@@ -242,13 +242,13 @@ export default function PortalCautive({ params }: Params) {
     createView();
   }, [queries?.id, view._id, ap._id]);
 
-  // if (isError) {
-  //   return (
-  //     <Stack>
-  //       <h1>Hubo un error</h1>
-  //     </Stack>
-  //   );
-  // }
+  if (isError) {
+    return (
+      <Stack>
+        <h1>Hubo un error</h1>
+      </Stack>
+    );
+  }
 
   return (
     <Stack bgcolor={"white"} minHeight={"100vh"} alignItems={"center"} py={5}>
