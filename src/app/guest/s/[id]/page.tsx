@@ -16,7 +16,6 @@ import Image from "next/image";
 import ImageNetmask from "../../../../../public/netmask.png";
 import Imglogo from "../../../../../public/ecorza.png";
 import theme from "@/app/theme/theme";
-import { error } from "console";
 
 const styleImg = {
   width: "100%",
@@ -80,12 +79,13 @@ export default function PortalCautive({ params }: Params) {
         [input.label]: {
           label: input.label,
           value: input?.options?.[0] || "",
-          type: "text",
+          type: input.type,
         },
       }),
       {}
     )
   );
+
   const [isLogged, setIsLogged] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,7 +93,7 @@ export default function PortalCautive({ params }: Params) {
     setFormData((prev) => ({
       ...prev,
       [name]: {
-        ...prev.name,
+        ...prev[name],
         value,
       },
     }));
@@ -104,7 +104,7 @@ export default function PortalCautive({ params }: Params) {
     setFormData((prev) => ({
       ...prev,
       [name]: {
-        ...prev.name,
+        ...prev[name],
         value,
       },
     }));
@@ -123,10 +123,12 @@ export default function PortalCautive({ params }: Params) {
         idSite: site._id,
       }),
     });
+
     if (!responseConn.ok) {
       // No puede entrar
       return;
     }
+
     const response = await fetch(`/api/view`, {
       method: "PUT",
       headers: {
@@ -138,10 +140,12 @@ export default function PortalCautive({ params }: Params) {
         info: Object.values(formData),
       }),
     });
+
     if (!response.ok) {
       // No actualizo cliente
       return;
     }
+
     setIsLogged(true);
     router.push("https://www.google.com/?hl=es");
   };
