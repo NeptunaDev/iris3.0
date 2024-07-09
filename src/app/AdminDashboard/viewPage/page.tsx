@@ -1,49 +1,75 @@
-import React from 'react'
-import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from '@mui/material';
+"use client";
+import React, { useEffect, useState } from 'react';
+import { getCookie } from 'cookies-next';
+import GridTableV1 from '../components/GridTable';
+import { Container } from '@mui/material';
 
-const page = () => {
-  const data = [
-    { name: 'John Doe', age: 28, email: 'john.doe@example.com' },
-    { name: 'Jane Smith', age: 34, email: 'jane.smith@example.com' },
-    { name: 'Mike Johnson', age: 45, email: 'mike.johnson@example.com' },
-  ];
-  
-  const headers = [
-    { label: 'Name', key: 'name' },
-    { label: 'Age', key: 'age' },
-    { label: 'Email', key: 'email' },
+interface InfoType {
+  createdAt: string;
+  idAp: string;
+  info: Array<{ [key: string]: any }>;
+  isLogin: boolean;
+  mac: string;
+  updatedAt: string;
+  __v: number;
+  _id: string;
+}
+
+const ViewChartPage = () => {
+  const [info, setInfo] = useState<InfoType[]>([]);
+  const token = getCookie("token");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`/api/view?isLogin=${true}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.status}`);
+        }
+        const result = await response.json();
+        setInfo(result.data);
+      } catch (error) {
+        console.log(error, "No se pudo consultar la vista");
+      }
+    };
+
+    fetchData();
+  }, [token]);
+
+  const columns = [
+    { field: 'createdAt', headerName: 'Created At', width: 150 },
+    { field: 'idAp', headerName: 'ID AP', width: 150 },
+    { field: 'isLogin', headerName: 'Is Login', width: 100 },
+    { field: 'mac', headerName: 'MAC Address', width: 150 },
+    { field: 'updatedAt', headerName: 'Updated At', width: 150 },
+    { field: '__v', headerName: 'Version', width: 100 },
+    { field: '_id', headerName: 'ID', width: 150 },
+    // Agregar columnas para cada clave en 'info' si es necesario
   ];
 
   return (
-        <Container sx={{ backgroundColor: "#fff", borderRadius: "20px" }}>
-          <Typography variant="h1" gutterBottom>
-            Datos de Usuarios
-          </Typography>
-            <Button variant="contained" color="primary" style={{ marginBottom: '20px' }}>
-              Descargar CSV
-            </Button>
-          <TableContainer component={Paper} sx={{ mt: 2, mb: 3 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Age</TableCell>
-                  <TableCell>Email</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {data.map((row, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell>{row.age}</TableCell>
-                    <TableCell>{row.email}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Container> 
-  )
-}
+    <Container
+      sx={{
+        backgroundColor: "white",
+        borderRadius: "20px",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <GridTableV1
+        title='Hola'
+        info={info}
+        columns={columns}
+        lang={{}}
+        getRowId={(row) => row._id}
+      />
+    </Container>
+  );
+};
 
-export default page;
+export default ViewChartPage;
