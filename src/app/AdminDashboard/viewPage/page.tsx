@@ -19,6 +19,11 @@ interface InfoType {
   _id: string;
 }
 
+interface ProcessedInfoType {
+  _id: string;
+  [key: string]: any; // Permite claves dinámicas como 'info_0', 'info_1', etc.
+}
+
 const ViewChartPage = () => {
   const [info, setInfo] = useState<InfoType[]>([]);
   const token = getCookie("token");
@@ -46,11 +51,11 @@ const ViewChartPage = () => {
   }, [token]);
 
   // Procesamos los datos para incluir solo las propiedades de `info`
-  const processedInfo = info.map(item => {
+  const processedInfo: ProcessedInfoType[] = info.map(item => {
     return item.info.reduce((acc, curr, index) => {
       acc[`info_${index}`] = curr.value;
       return acc;
-    }, { _id: item._id });
+    }, { _id: item._id } as ProcessedInfoType);
   });
 
   const columnNames = ['Nombre:', 'Apellido:', 'Email:', 'Rango de Edad:', 'Teléfono:', 'Profesión'];
