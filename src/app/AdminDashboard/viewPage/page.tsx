@@ -4,15 +4,24 @@ import { getCookie } from 'cookies-next';
 import GridTableV1 from '../components/GridTable';
 import { Container } from '@mui/material';
 
+interface InfoItem {
+  value: string; // Ajusta esto según la estructura real de los elementos dentro de 'info'
+}
+
 interface InfoType {
   createdAt: string;
   idAp: string;
-  info: Array<{ [key: string]: any }>;
+  info: InfoItem[];
   isLogin: boolean;
   mac: string;
   updatedAt: string;
   __v: number;
   _id: string;
+}
+
+interface ProcessedInfoType {
+  _id: string;
+  [key: string]: any; // Permite claves dinámicas como 'info_0', 'info_1', etc.
 }
 
 const ViewChartPage = () => {
@@ -41,16 +50,22 @@ const ViewChartPage = () => {
     fetchData();
   }, [token]);
 
-  const columns = [
-    { field: 'createdAt', headerName: 'Created At', width: 150 },
-    { field: 'idAp', headerName: 'ID AP', width: 150 },
-    { field: 'isLogin', headerName: 'Is Login', width: 100 },
-    { field: 'mac', headerName: 'MAC Address', width: 150 },
-    { field: 'updatedAt', headerName: 'Updated At', width: 150 },
-    { field: '__v', headerName: 'Version', width: 100 },
-    { field: '_id', headerName: 'ID', width: 150 },
-    // Agregar columnas para cada clave en 'info' si es necesario
-  ];
+  // Procesamos los datos para incluir solo las propiedades de `info`
+  const processedInfo: ProcessedInfoType[] = info.map(item => {
+    return item.info.reduce((acc, curr, index) => {
+      acc[`info_${index}`] = curr.value;
+      return acc;
+    }, { _id: item._id } as ProcessedInfoType);
+  });
+
+  const columnNames = ['Nombre:', 'Apellido:', 'Email:', 'Rango de Edad:', 'Teléfono:', 'Profesión'];
+
+  // Definición de columnas solo para `info`
+  const columns = columnNames.map((name, index) => ({
+    field: `info_${index}`,
+    headerName: name,
+    width: 250
+  }));
 
   return (
     <Container
@@ -62,8 +77,8 @@ const ViewChartPage = () => {
       }}
     >
       <GridTableV1
-        title='Hola'
-        info={info}
+        title='Tabla De Registros del Portal'
+        info={processedInfo}
         columns={columns}
         lang={{}}
         getRowId={(row) => row._id}
