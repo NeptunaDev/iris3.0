@@ -10,9 +10,12 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
 
 export default function Page() {
-  const queries = getQueriesStr(useSearchParams().toString().replaceAll("%3A", ":").replaceAll("%2F", "/"));
-  const { base_grant_url, user_continue_url } = queries;
-  const url = base_grant_url + "?continue_url" +user_continue_url;
+  const queries = getQueriesStr(
+    useSearchParams().toString().replaceAll("%3A", ":").replaceAll("%2F", "/")
+  );
+  const { base_grant_url } = queries;
+  const url = base_grant_url + "?continue_url=" + "https://google.com";
+  console.log("🚀 ~ Page ~ url:", url);
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [formData, setFormData] = useState<FormData>(
