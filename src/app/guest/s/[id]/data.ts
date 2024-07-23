@@ -15,6 +15,15 @@ export const inputs = [
     placeholder: 'Ingrese su email',
   },
   {
+    label: 'Sexo',
+    type: 'select',
+    options: [
+      'Femenino',
+      'Masculino',
+      'Otros',
+    ]
+  },
+  {
     label: 'Edad',
     type: 'select',
     options: [
