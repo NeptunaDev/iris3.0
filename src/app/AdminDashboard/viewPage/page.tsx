@@ -21,11 +21,12 @@ interface InfoType {
 
 interface ProcessedInfoType {
   _id: string;
-  [key: string]: any; // Permite claves dinámicas como 'info_0', 'info_1', etc.
+  [key: string]: any;
 }
 
 const ViewChartPage = () => {
   const [info, setInfo] = useState<InfoType[]>([]);
+  console.log("🚀 ~ ViewChartPage ~ info:", info)
   const token = getCookie("token");
 
   useEffect(() => {
@@ -59,6 +60,7 @@ const ViewChartPage = () => {
   });
 
   const columnNames = ['Nombre:', 'Apellido:', 'Email:', 'Rango de Edad:', 'Teléfono:', 'Profesión'];
+  //limpiar base de datos, verificar campos de formulario si envien esa informacion, y los normbres de la columna cargarlos dinamicamente
 
   // Definición de columnas solo para `info`
   const columns = columnNames.map((name, index) => ({
