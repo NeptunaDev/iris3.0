@@ -9,7 +9,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body>
+      <body style={{margin: 0}}>
         <ThemeProvider theme={theme}>{children}</ThemeProvider>
       </body>
     </html>
