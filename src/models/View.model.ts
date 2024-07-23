@@ -15,6 +15,7 @@ export interface View extends Document {
   mac: string
   isLogin: boolean
   info: Array<Info>
+  code: string
 }
 
 // Create schema
@@ -39,6 +40,10 @@ const ViewSchema = new mongoose.Schema<View>(
       type: Array<Info>(),
       default: [],
     },
+    code: {
+      type: String,
+      index: true,
+    }
   },
   {
     timestamps: true,
