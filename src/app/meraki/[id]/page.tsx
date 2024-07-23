@@ -6,11 +6,13 @@ import { FormData } from "./interfaces";
 import { Input } from "@/Components/Input/Input";
 import theme from "../../theme/theme";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { getQueriesStr } from "@/utils/api/request/getQueries";
 
 export default function Page() {
-  const path = usePathname()
-  console.log("🚀 ~ Page ~ path:", path)
+  const queries = getQueriesStr(useSearchParams().toString());
+  console.log("🚀 ~ Page ~ queries:", queries)
+
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce(
@@ -39,95 +41,99 @@ export default function Page() {
   };
 
   return (
-    <Stack
-      sx={{
-        backgroundImage: `url(/velezdesktop.jpg)`,
-        backgroundPosition: "center",
-        height: "100vh",
-        justifyContent: "center",
-        backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
-        alignItems: "flex-end",
-        "@media (max-width: 600px)": {
-          backgroundImage: `url(/velezresponsive.jpg)`,
-        },
-      }}
-    >
-      <Stack
-        width={{
-          md: "40%",
-          xs: "90%",
-        }}
-        alignItems={"center"}
-        justifyContent={"center"}
-        sx={{
-          padding: 4,
-          borderRadius: 2,
-          mt: { xs: '4rem' },
-        }}
-      >
-        <Typography fontSize={"1.3REM"} fontWeight={500} color={"#fff"}>
-          Te damos la Bienvenida!
-        </Typography>
-        {inputs.map((input, index) => {
-          return (
-            <Input
-              handleChange={handleChange}
-              key={index}
-              label={input.label}
-              type={input.type}
-              placeholder={input?.placeholder}
-              value={formData[input.label].value}
-            />
-          );
-        })}
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Checkbox
-            checked={acceptedTerms}
-            onChange={(e) => setAcceptedTerms(e.target.checked)}
-            sx={{
-              color: "grey",
-              "&.Mui-checked": {
-                color: 'white',
-              },
-            }}
-          />
-          <Link
-            href="https://www.ciscocolombia.co/pages/politica-de-privacidad"
-            passHref
-          >
-            <Typography
-              sx={{
-                color: "#fff",
-                textDecoration: "none",
-                "&:hover": {
-                  color: "#2",
-                },
-              }}
-            >
-              Acepto terminos y condiciones descritos en este enlace
-            </Typography>
-          </Link>
-        </Stack>
-        <Button
-          // onClick={sendForm}
-          sx={{
-            backgroundColor: theme.palette.primary.dark,
-            color: "#fff",
-            padding: "8px 16px",
-            "&:hover": {
-              backgroundColor: "#fff",
-              color: theme.palette.primary.dark,
-            },
-            width: "200px",
-          }}
-          variant="contained"
-          fullWidth
-          // disabled={!acceptedTerms}
-        >
-          Conectarme!
-        </Button>
-      </Stack>
-    </Stack>
+    <form method="POST" action={'hola'}>
+      <input type="text" />
+      <button type="submit">send</button>
+    </form>
+    // <Stack
+    //   sx={{
+    //     backgroundImage: `url(/velezdesktop.jpg)`,
+    //     backgroundPosition: "center",
+    //     height: "100vh",
+    //     justifyContent: "center",
+    //     backgroundSize: "cover",
+    //     backgroundRepeat: "no-repeat",
+    //     alignItems: "flex-end",
+    //     "@media (max-width: 600px)": {
+    //       backgroundImage: `url(/velezresponsive.jpg)`,
+    //     },
+    //   }}
+    // >
+    //   <Stack
+    //     width={{
+    //       md: "40%",
+    //       xs: "90%",
+    //     }}
+    //     alignItems={"center"}
+    //     justifyContent={"center"}
+    //     sx={{
+    //       padding: 4,
+    //       borderRadius: 2,
+    //       mt: { xs: '4rem' },
+    //     }}
+    //   >
+    //     <Typography fontSize={"1.3REM"} fontWeight={500} color={"#fff"}>
+    //       Te damos la Bienvenida!
+    //     </Typography>
+    //     {inputs.map((input, index) => {
+    //       return (
+    //         <Input
+    //           handleChange={handleChange}
+    //           key={index}
+    //           label={input.label}
+    //           type={input.type}
+    //           placeholder={input?.placeholder}
+    //           value={formData[input.label].value}
+    //         />
+    //       );
+    //     })}
+    //     <Stack direction="row" alignItems="center" spacing={1}>
+    //       <Checkbox
+    //         checked={acceptedTerms}
+    //         onChange={(e) => setAcceptedTerms(e.target.checked)}
+    //         sx={{
+    //           color: "grey",
+    //           "&.Mui-checked": {
+    //             color: 'white',
+    //           },
+    //         }}
+    //       />
+    //       <Link
+    //         href="https://www.ciscocolombia.co/pages/politica-de-privacidad"
+    //         passHref
+    //       >
+    //         <Typography
+    //           sx={{
+    //             color: "#fff",
+    //             textDecoration: "none",
+    //             "&:hover": {
+    //               color: "#2",
+    //             },
+    //           }}
+    //         >
+    //           Acepto terminos y condiciones descritos en este enlace
+    //         </Typography>
+    //       </Link>
+    //     </Stack>
+    //     <Button
+    //       // onClick={sendForm}
+    //       sx={{
+    //         backgroundColor: theme.palette.primary.dark,
+    //         color: "#fff",
+    //         padding: "8px 16px",
+    //         "&:hover": {
+    //           backgroundColor: "#fff",
+    //           color: theme.palette.primary.dark,
+    //         },
+    //         width: "200px",
+    //       }}
+    //       variant="contained"
+    //       fullWidth
+    //       // disabled={!acceptedTerms}
+    //     >
+    //       Conectarme!
+    //     </Button>
+    //   </Stack>
+    // </Stack>
   );
 }
