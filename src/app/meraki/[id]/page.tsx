@@ -6,11 +6,13 @@ import { FormData } from "./interfaces";
 import { Input } from "@/Components/Input/Input";
 import theme from "../../theme/theme";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { getQueriesStr } from "@/utils/api/request/getQueries";
 
 export default function Page() {
-  const path = usePathname()
-  console.log("🚀 ~ Page ~ path:", path)
+  const queries = getQueriesStr(useSearchParams().toString())
+  console.log("🚀 ~ Page ~ queries:", queries)
+  
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce(
