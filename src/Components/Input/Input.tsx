@@ -1,4 +1,4 @@
-import { FormControl, FormLabel, TextField } from "@mui/material";
+import { FormControl, FormLabel, SxProps, TextField } from "@mui/material";
 
 interface InputProps {
   label: string;
@@ -6,6 +6,7 @@ interface InputProps {
   value: string;
   placeholder?: string;
   handleChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  sx?: SxProps
 }
 
 export function Input({
@@ -14,6 +15,7 @@ export function Input({
   placeholder,
   handleChange,
   value,
+  sx
 }: InputProps) {
   return (
     <FormControl>
@@ -43,6 +45,7 @@ export function Input({
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: "#CCC",
           },
+          ...sx
         }}
       />
     </FormControl>
