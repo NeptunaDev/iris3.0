@@ -43,12 +43,6 @@ const AdminDashboard = () => {
           <UniqueDevicesCard />
         </Stack>
       </Stack>
-
-      <Stack
-        sx={{ justifyContent: "center", pt: "3rem", alignItems: "center" }}
-      >
-        <CustomDoughnut />
-      </Stack>
     </Container>
   );
 };

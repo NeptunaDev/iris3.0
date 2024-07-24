@@ -16,54 +16,14 @@ import Image from "next/image";
 import ImageNetmask from "../../../../../public/netmask.png";
 import Imglogo from "../../../../../public/ecorza.png";
 import theme from "@/app/theme/theme";
-import { error } from "console";
+import Checkbox from "@mui/material/Checkbox";
+import Link from "next/link";
+import { AP, Params, Site, View, FormData } from "./interfaces";
 
 const styleImg = {
   width: "100%",
   height: "100%",
 };
-
-interface FormData {
-  [key: string]: {
-    label: string;
-    value: string;
-    type: string;
-  };
-}
-
-interface Params {
-  params: {
-    id: string;
-  };
-}
-
-interface Site {
-  _id: string;
-  idOrganization: string;
-  type: "ubiquiti" | "meraki";
-  siteId: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface AP {
-  _id: string;
-  idSite: string;
-  mac: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface View {
-  idAp: string;
-  mac: string;
-  isLogin: boolean;
-  info: [];
-  _id: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export default function PortalCautive({ params }: Params) {
   const queries = getQueriesStr(useSearchParams().toString());
@@ -71,6 +31,7 @@ export default function PortalCautive({ params }: Params) {
   const [isError, setIsError] = useState<boolean>(false);
   const [site, setSite] = useState<Site>({} as Site);
   const [ap, setAp] = useState<AP>({} as AP);
+  console.log("🚀 ~ PortalCautive ~ ap:", ap)
   const [view, setView] = useState<View>({} as View);
 
   const [formData, setFormData] = useState<FormData>(
@@ -80,20 +41,22 @@ export default function PortalCautive({ params }: Params) {
         [input.label]: {
           label: input.label,
           value: input?.options?.[0] || "",
-          type: "text",
+          type: input.type,
         },
       }),
       {}
     )
   );
+
   const [isLogged, setIsLogged] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: {
-        ...prev.name,
+        ...prev[name],
         value,
       },
     }));
@@ -104,29 +67,39 @@ export default function PortalCautive({ params }: Params) {
     setFormData((prev) => ({
       ...prev,
       [name]: {
-        ...prev.name,
+        ...prev[name],
         value,
       },
     }));
   };
 
   const sendForm = async () => {
-    const responseConn = await fetch(`https://api-iris-0yax.onrender.com/api/v1/ubiquiti/connecting`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: queries.id.replaceAll("%3A", ":"),
-        ap: queries.ap.replaceAll("%3A", ":"),
-        site: params.id,
-        idSite: site._id,
-      }),
-    });
+    if (!acceptedTerms) {
+      alert('Por favor, acepte los términos y condiciones.');
+      return;
+    }
+
+    const responseConn = await fetch(
+      `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/connecting`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: queries.id.replaceAll("%3A", ":"),
+          ap: queries.ap.replaceAll("%3A", ":"),
+          site: params.id,
+          idSite: site._id,
+        }),
+      }
+    );
+
     if (!responseConn.ok) {
       // No puede entrar
       return;
     }
+
     const response = await fetch(`/api/view`, {
       method: "PUT",
       headers: {
@@ -138,10 +111,12 @@ export default function PortalCautive({ params }: Params) {
         info: Object.values(formData),
       }),
     });
+
     if (!response.ok) {
       // No actualizo cliente
       return;
     }
+
     setIsLogged(true);
     router.push("https://www.google.com/?hl=es");
   };
@@ -316,6 +291,17 @@ export default function PortalCautive({ params }: Params) {
             />
           );
         })}
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Checkbox
+            checked={acceptedTerms}
+            onChange={(e) => setAcceptedTerms(e.target.checked)}
+          />
+          <Link href="https://www.ciscocolombia.co/pages/politica-de-privacidad" passHref>
+            <Typography>
+              Política de Privacidad y Tratamiento de Datos
+            </Typography>
+          </Link>
+        </Stack>
         <Button
           onClick={sendForm}
           sx={{
@@ -329,6 +315,7 @@ export default function PortalCautive({ params }: Params) {
           }}
           variant="contained"
           fullWidth
+          disabled={!acceptedTerms}
         >
           Enviar
         </Button>

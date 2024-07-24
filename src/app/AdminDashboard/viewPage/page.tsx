@@ -1,49 +1,92 @@
-import React from 'react'
-import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from '@mui/material';
+"use client";
+import React, { useEffect, useState } from 'react';
+import { getCookie } from 'cookies-next';
+import GridTableV1 from '../components/GridTable';
+import { Container } from '@mui/material';
 
-const page = () => {
-  const data = [
-    { name: 'John Doe', age: 28, email: 'john.doe@example.com' },
-    { name: 'Jane Smith', age: 34, email: 'jane.smith@example.com' },
-    { name: 'Mike Johnson', age: 45, email: 'mike.johnson@example.com' },
-  ];
-  
-  const headers = [
-    { label: 'Name', key: 'name' },
-    { label: 'Age', key: 'age' },
-    { label: 'Email', key: 'email' },
-  ];
-
-  return (
-        <Container sx={{ backgroundColor: "#fff", borderRadius: "20px" }}>
-          <Typography variant="h1" gutterBottom>
-            Datos de Usuarios
-          </Typography>
-            <Button variant="contained" color="primary" style={{ marginBottom: '20px' }}>
-              Descargar CSV
-            </Button>
-          <TableContainer component={Paper} sx={{ mt: 2, mb: 3 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Age</TableCell>
-                  <TableCell>Email</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {data.map((row, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell>{row.age}</TableCell>
-                    <TableCell>{row.email}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Container> 
-  )
+interface InfoItem {
+  value: string; // Ajusta esto según la estructura real de los elementos dentro de 'info'
 }
 
-export default page;
+interface InfoType {
+  createdAt: string;
+  idAp: string;
+  info: InfoItem[];
+  isLogin: boolean;
+  mac: string;
+  updatedAt: string;
+  __v: number;
+  _id: string;
+}
+
+interface ProcessedInfoType {
+  _id: string;
+  [key: string]: any;
+}
+
+const ViewChartPage = () => {
+  const [info, setInfo] = useState<InfoType[]>([]);
+  console.log("🚀 ~ ViewChartPage ~ info:", info)
+  const token = getCookie("token");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`/api/view?isLogin=${true}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.status}`);
+        }
+        const result = await response.json();
+        setInfo(result.data);
+      } catch (error) {
+        console.log(error, "No se pudo consultar la vista");
+      }
+    };
+
+    fetchData();
+  }, [token]);
+
+  // Procesamos los datos para incluir solo las propiedades de `info`
+  const processedInfo: ProcessedInfoType[] = info.map(item => {
+    return item.info.reduce((acc, curr, index) => {
+      acc[`info_${index}`] = curr.value;
+      return acc;
+    }, { _id: item._id } as ProcessedInfoType);
+  });
+
+  const columnNames = ['Nombre:', 'Apellido:', 'Email:', 'Rango de Edad:', 'Teléfono:', 'Profesión'];
+  //limpiar base de datos, verificar campos de formulario si envien esa informacion, y los normbres de la columna cargarlos dinamicamente
+
+  // Definición de columnas solo para `info`
+  const columns = columnNames.map((name, index) => ({
+    field: `info_${index}`,
+    headerName: name,
+    width: 250
+  }));
+
+  return (
+    <Container
+      sx={{
+        backgroundColor: "white",
+        borderRadius: "20px",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <GridTableV1
+        title='Tabla De Registros del Portal'
+        info={processedInfo}
+        columns={columns}
+        lang={{}}
+        getRowId={(row) => row._id}
+      />
+    </Container>
+  );
+};
+
+export default ViewChartPage;
