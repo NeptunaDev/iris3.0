@@ -8,6 +8,7 @@ import theme from "../../theme/theme";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
+import { any } from "joi";
 
 export default function Page({ params }: Params) {
   const queries = getQueriesStr(
@@ -17,15 +18,10 @@ export default function Page({ params }: Params) {
   const url = base_grant_url + "?continue_url=" + "https://google.com";
   const [isLogged, setIsLogged] = useState(false);
   const [ap, setAp] = useState<AP>({} as AP);
-  console.log("🚀 ~ Page ~ ap:", ap);
   const [isError, setIsError] = useState<boolean>(false);
   const [view, setView] = useState<View>({} as View);
+  console.log("🚀 ~ Page ~ view:", view);
   const [site, setSite] = useState<Site>({} as Site);
-
-  //primero se hace el: {{PORT}}/communication/email-by-view para disparar el email.
-  // despues se hace el {{PORT}}/view/verify-code para velidar ese codigo
-  //despues se hace el login is true
-  //despues se llama al get y se redirecciona
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce(
       (acc, input) => ({
@@ -33,12 +29,14 @@ export default function Page({ params }: Params) {
         [input.label]: {
           label: input.label,
           type: input.type,
+          value: "",
         },
       }),
       {}
     )
   );
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showVerificationForm, setShowVerificationForm] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -145,12 +143,62 @@ export default function Page({ params }: Params) {
     createView();
   }, [queries?.client_mac, view._id, ap._id]);
 
+  const handleSendEmail = async () => {
+    const { _id } = view;
+    const email = formData["Email"]?.value;
+    if (!email) {
+      console.error("Email is not defined");
+      return;
+    }
+    try {
+      const response = await fetch("/api/communication/email-by-view", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id_view: _id,
+          template: "code_velez",
+          email: email,
+        }),
+      });
+
+      const data = await response.json();
+      console.log("🚀 ~ handleSendEmail ~ data:", data)
+
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+
+      // setShowVerificationForm(true);
+    } catch (error: any) {
+      console.log("error", error.message);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    const { _id } = view;
+    try {
+      const response = await fetch("/view/verify-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: "547395",
+          id_view: _id,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
   return (
     <>
-      {/* <form action={url} method="GET">
-        <input type="text" />
-        <input type="submit" value="Submit" />
-      </form> */}
       <Stack
         sx={{
           backgroundImage: `url(/velezdesktop.jpg)`,
@@ -178,73 +226,125 @@ export default function Page({ params }: Params) {
             mt: { xs: "4rem" },
           }}
         >
-          <Typography fontSize={"1.3REM"} fontWeight={"bold"} color={"#fff"}>
-            Te damos la bienvenida!
-          </Typography>
-          {inputs.map((input, index) => {
-            return (
-              <Input
-                handleChange={handleChange}
-                key={index}
-                label={input.label}
-                type={input.type}
-                placeholder={input?.placeholder}
-                value={formData[input.label].value}
-                sx={{
-                  backgroundColor: "white",
-                  color: "black",
-                  width: { md: "400px", xs: "300px" },
-                }}
-              />
-            );
-          })}
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Checkbox
-              checked={acceptedTerms}
-              onChange={(e) => setAcceptedTerms(e.target.checked)}
-              sx={{
-                color: "grey",
-                "&.Mui-checked": {
-                  color: "white",
-                },
-              }}
-            />
-            <Link
-              href="https://www.ciscocolombia.co/pages/politica-de-privacidad"
-              passHref
-            >
+          {!showVerificationForm ? (
+            <>
               <Typography
-                sx={{
-                  color: "#fff",
-                  textDecoration: "none",
-                  "&:hover": {
-                    color: "#2",
-                  },
-                }}
+                fontSize={"1.3REM"}
+                fontWeight={"bold"}
+                color={"#fff"}
               >
-                Acepto terminos y condiciones descritos en este enlace
+                Te damos la bienvenida!
               </Typography>
-            </Link>
-          </Stack>
-          <Button
-            // onClick={sendForm}
-            sx={{
-              backgroundColor: theme.palette.primary.dark,
-              color: "#fff",
-              padding: "8px 16px",
-              "&:hover": {
-                backgroundColor: "#fff",
-                color: theme.palette.primary.dark,
-              },
-              width: "200px",
-            }}
-            variant="contained"
-            fullWidth
-            // disabled={!acceptedTerms}
-            //debe validar el email para que se le envie el codigo que debe ingresar
-          >
-            Conectarme!
-          </Button>
+              {inputs.map((input, index) => {
+                return (
+                  <Input
+                    handleChange={handleChange}
+                    key={index}
+                    label={input.label}
+                    type={input.type}
+                    placeholder={input?.placeholder}
+                    value={formData[input.label].value}
+                    sx={{
+                      backgroundColor: "white",
+                      color: "black",
+                      width: { md: "400px", xs: "300px" },
+                    }}
+                  />
+                );
+              })}
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Checkbox
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  sx={{
+                    color: "grey",
+                    "&.Mui-checked": {
+                      color: "white",
+                    },
+                  }}
+                />
+                <Link
+                  href="https://www.ciscocolombia.co/pages/politica-de-privacidad"
+                  passHref
+                >
+                  <Typography
+                    sx={{
+                      color: "#fff",
+                      textDecoration: "none",
+                      "&:hover": {
+                        color: "#2",
+                      },
+                    }}
+                  >
+                    Acepto terminos y condiciones descritos en este enlace
+                  </Typography>
+                </Link>
+              </Stack>
+              <Button
+                onClick={handleSendEmail}
+                sx={{
+                  backgroundColor: theme.palette.primary.dark,
+                  color: "#fff",
+                  padding: "8px 16px",
+                  "&:hover": {
+                    backgroundColor: "#fff",
+                    color: theme.palette.primary.dark,
+                  },
+                  width: "200px",
+                }}
+                variant="contained"
+                fullWidth
+                // disabled={!acceptedTerms}
+                //debe validar el email para que se le envie el codigo que debe ingresar
+              >
+                Conectarme!
+              </Button>
+            </>
+          ) : (
+            <>
+              <Typography
+                fontSize={"1.3REM"}
+                fontWeight={"bold"}
+                color={"#fff"}
+              >
+                Introduce tu código de verificación
+              </Typography>
+              {["Código 1", "Código 2", "Código 3", "Código 4"].map(
+                (label, index) => (
+                  <Input
+                    handleChange={handleChange}
+                    key={index}
+                    label={label}
+                    type="text"
+                    placeholder={`Ingrese ${label.toLowerCase()}`}
+                    value={formData[label]?.value || ""}
+                    sx={{
+                      backgroundColor: "white",
+                      color: "black",
+                      width: { md: "400px", xs: "300px" },
+                    }}
+                  />
+                )
+              )}
+              <Button
+                onClick={handleVerifyCode}
+                sx={{
+                  backgroundColor: theme.palette.primary.dark,
+                  color: "#fff",
+                  padding: "8px 16px",
+                  "&:hover": {
+                    backgroundColor: "#fff",
+                    color: theme.palette.primary.dark,
+                  },
+                  width: "200px",
+                }}
+                variant="contained"
+                fullWidth
+              >
+                Verificar
+              </Button>
+            </>
+          )}
         </Stack>
       </Stack>
     </>
