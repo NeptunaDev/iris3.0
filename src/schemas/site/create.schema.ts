@@ -27,21 +27,57 @@ export const Create = Joi.object<CreateSite>({
     otherwise: Joi.forbidden().description("The site id (optional for meraki)"),
   }),
   name: Joi.string()
-    .required()
+    .when("type", {
+      is: SiteType.UBIQUITI,
+      then: Joi.required().description("The name associated with the site"),
+      otherwise: Joi.optional().description(
+        "The name associated with the site"
+      ),
+    })
     .description("The name associated with the site"),
   host: Joi.string()
-    .required()
+    .when("type", {
+      is: SiteType.UBIQUITI,
+      then: Joi.required().description("The name associated with the site"),
+      otherwise: Joi.optional().description(
+        "The name associated with the site"
+      ),
+    })
     .description("The host of the site"),
   port: Joi.string()
-    .required()
+    .when("type", {
+      is: SiteType.UBIQUITI,
+      then: Joi.required().description("The name associated with the site"),
+      otherwise: Joi.optional().description(
+        "The name associated with the site"
+      ),
+    })
     .description("The port of the site"),
   username: Joi.string()
-    .required()
+    .when("type", {
+      is: SiteType.UBIQUITI,
+      then: Joi.required().description("The name associated with the site"),
+      otherwise: Joi.optional().description(
+        "The name associated with the site"
+      ),
+    })
     .description("The username of the site"),
   password: Joi.string()
-    .required()
+    .when("type", {
+      is: SiteType.UBIQUITI,
+      then: Joi.required().description("The name associated with the site"),
+      otherwise: Joi.optional().description(
+        "The name associated with the site"
+      ),
+    })
     .description("The password of the site"),
   sslverify: Joi.boolean()
-    .required()
+    .when("type", {
+      is: SiteType.UBIQUITI,
+      then: Joi.required().description("The name associated with the site"),
+      otherwise: Joi.optional().description(
+        "The name associated with the site"
+      ),
+    })
     .description("The sslverify of the site"),
 });

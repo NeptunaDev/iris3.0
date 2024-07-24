@@ -3,13 +3,18 @@ import { NextResponse } from "next/server";
 import SiteModel from "@/models/Site.models";
 import { encryptText } from "@/utils/crypto/crypto";
 
+const genereateRandomSiteId = () => {
+  return Math.random().toString(36).substring(2, 15);
+};
+
 export const create = async (body: any) => {
   try {
-    console.log(body)
-    const newSite = new SiteModel({
-      ...body,
-      password: encryptText(body.password) 
-    });
+    const { type, password, ...rest } = body;
+    let data = { ...rest, type };
+    if (type === "ubiquiti")
+      data = { ...data, password: encryptText(password) };
+    else data = { ...data, siteId: genereateRandomSiteId() };
+    const newSite = new SiteModel(data);
     const site = await newSite.save();
 
     return NextResponse.json(
