@@ -13,17 +13,14 @@ export default function Page({ params }: Params) {
   const queries = getQueriesStr(
     useSearchParams().toString().replaceAll("%3A", ":").replaceAll("%2F", "/")
   );
-  console.log("🚀 ~ Page ~ queries:", queries);
   const { base_grant_url } = queries;
   const url = base_grant_url + "?continue_url=" + "https://google.com";
-  console.log("🚀 ~ Page ~ url:", url);
   const [isLogged, setIsLogged] = useState(false);
   const [ap, setAp] = useState<AP>({} as AP);
-  console.log("🚀 ~ Page ~ ap:", ap)
+  console.log("🚀 ~ Page ~ ap:", ap);
   const [isError, setIsError] = useState<boolean>(false);
   const [view, setView] = useState<View>({} as View);
   const [site, setSite] = useState<Site>({} as Site);
-  console.log("🚀 ~ Page ~ site:", site)
 
   //primero se hace el: {{PORT}}/communication/email-by-view para disparar el email.
   // despues se hace el {{PORT}}/view/verify-code para velidar ese codigo
@@ -78,7 +75,7 @@ export default function Page({ params }: Params) {
 
   useEffect(() => {
     if (!site?._id) return;
-    if (!queries?.ap) {
+    if (!queries?.node_mac) {
       setIsError(true);
       return;
     }
@@ -88,7 +85,9 @@ export default function Page({ params }: Params) {
         const response = await fetch(
           `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/ap?idSite=${
             site._id
-          }&mac=${queries.ap.replaceAll("%3A", ":").replaceAll("%2F", "/")}`,
+          }&mac=${queries.node_mac
+            .replaceAll("%3A", ":")
+            .replaceAll("%2F", "/")}`,
           {
             method: "GET",
             headers: {
@@ -107,11 +106,11 @@ export default function Page({ params }: Params) {
       }
     };
     getData();
-  }, [queries?.ap, site._id]);
+  }, [queries?.node_mac, site._id]);
 
   useEffect(() => {
     if (!ap?._id) return;
-    if (!queries?.id) {
+    if (!queries?.client_mac) {
       setIsError(true);
       return;
     }
@@ -121,14 +120,16 @@ export default function Page({ params }: Params) {
 
     const createView = async () => {
       try {
-        const response = await fetch(`https://api-iris-0yax.onrender.com/api/view`, {
+        const response = await fetch(`/api/view`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             idAp: ap?._id,
-            mac: queries?.id.replaceAll("%3A", ":").replaceAll("%2F", "/"),
+            mac: queries?.client_mac
+              .replaceAll("%3A", ":")
+              .replaceAll("%2F", "/"),
           }),
         });
         if (!response.ok)
@@ -142,7 +143,7 @@ export default function Page({ params }: Params) {
     };
 
     createView();
-  }, [queries?.id, view._id, ap._id]);
+  }, [queries?.client_mac, view._id, ap._id]);
 
   return (
     <>
