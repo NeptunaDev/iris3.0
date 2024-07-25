@@ -36,28 +36,22 @@ const SiteSchema = new Schema<Site>(
     },
     name: {
       type: String,
-      required: true,
     },
     host: {
       type: String,
-      required: true,
     },
     port: {
       type: String,
-      required: true,
     },
     username: {
       type: String,
-      required: true,
     },
     password: {
       type: String,
-      required: true,
     },
     sslverify: {
       type: Boolean,
-      required: true,
-    }
+    },
   },
   {
     timestamps: true,

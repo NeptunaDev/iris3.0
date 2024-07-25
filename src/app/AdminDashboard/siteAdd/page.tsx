@@ -22,7 +22,7 @@ import CreateUpdateModal from "./components/CreateUpdateModal";
 import DeleteConfirmation from "./components/DeleteConfirmation";
 import { getCookie } from "cookies-next";
 
-interface DataItem {
+export interface DataItem {
   _id: string;
   name: string;
   createdAt: string;
@@ -68,6 +68,7 @@ const SiteCrud: React.FC = () => {
   useEffect(() => {
     fetchSites();
     fetchOrganizations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const fetchSites = async () => {
@@ -148,59 +149,21 @@ const SiteCrud: React.FC = () => {
   const handleCloseModal = () => setModalOpen(false);
   const handleCloseDelete = () => setDeleteOpen(false);
 
-  const handleChange: ChangeEventHandler<
-    HTMLInputElement | HTMLTextAreaElement
-  > = (e) => {
-    const { name, value } = e.target;
-    setCurrentData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (
-    e:
-      | ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-      | SelectChangeEvent<string>
-  ) => {
-    const { name, value } = e.target;
-    setCurrentData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleTypeChange = (e: SelectChangeEvent<string>) => {
-    const value = e.target.value as string;
-    setCurrentData((prev) => ({ ...prev, type: value }));
-  };
-
   const handleSubmit = async () => {
     try {
-      const {
-        idOrganization,
-        type,
-        name,
-        siteId,
-        host,
-        port,
-        username,
-        password,
-        sslverify,
-      } = currentData;
+      const { name, type, idOrganization, ...res } = currentData;
+      let data = { idOrganization, type: type.toLowerCase(), name };
+      if (type.toLocaleLowerCase() === "ubiquiti") data = { ...data, ...res };
       const response = await fetch("/api/site", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          idOrganization,
-          type: type.toLowerCase(),
-          name,
-          siteId,
-          host,
-          port,
-          username,
-          password,
-          sslverify,
-        }),
+        body: JSON.stringify(data),
       });
       const newData = await response.json();
+      console.log("🚀 ~ handleSubmit ~ newData:", newData)
       if (newData.status === 200) {
         setData((prev) => {
           const exists = prev.some((item) => item._id === newData.data._id);
@@ -338,9 +301,7 @@ const SiteCrud: React.FC = () => {
         open={modalOpen}
         handleClose={handleCloseModal}
         data={currentData}
-        handleTypeChange={handleTypeChange}
-        handleChange={handleChange}
-        handleSelectChange={handleSelectChange}
+        setCurrentData={setCurrentData}
         handleSubmit={isUpdate ? handleUpdate : handleSubmit}
         isUpdate={isUpdate}
         organizations={organizations}
