@@ -104,7 +104,7 @@ const Sidebar: React.FC<Props> = ({ window }) => {
 
       <Box sx={{ textAlign: "center", padding: theme.spacing(2) }}>
         <img
-          src="/image.png"
+          src="irisLogo.png"
           alt="My Image"
           style={{ width: "100%", height: "auto" }}
         />
