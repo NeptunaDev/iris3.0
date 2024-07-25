@@ -22,7 +22,7 @@ const MuiOtpInputStyled = styled(MuiOtpInput)`
   gap: 30px;
   max-width: 600px;
   margin-inline: auto;
-  .MuiOtpInput-TextField{
+  .MuiOtpInput-TextField {
     background-color: white; /* Estilo para que cada cuadro sea blanco */
   }
 `;
@@ -53,15 +53,12 @@ export default function Page({ params }: Params) {
   );
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showVerificationForm, setShowVerificationForm] = useState(false);
-  const [otp, setOtp] = useState<OTPState>(String);
+  const [otp, setOtp] = useState<string>("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name.startsWith("Código")) {
-      setOtp((prevOtp) => ({
-        ...prevOtp,
-        [name]: value,
-      }));
+      setOtp((prevOtp) => prevOtp + value);
     } else {
       setFormData((prev) => ({
         ...prev,
