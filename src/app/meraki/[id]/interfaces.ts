@@ -39,3 +39,7 @@ export interface FormData {
       id: string;
     };
   }
+
+  export interface OTPState {
+    [index: number]: string;
+  }

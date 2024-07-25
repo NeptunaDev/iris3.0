@@ -31,7 +31,6 @@ export default function PortalCautive({ params }: Params) {
   const [isError, setIsError] = useState<boolean>(false);
   const [site, setSite] = useState<Site>({} as Site);
   const [ap, setAp] = useState<AP>({} as AP);
-  console.log("🚀 ~ PortalCautive ~ ap:", ap)
   const [view, setView] = useState<View>({} as View);
 
   const [formData, setFormData] = useState<FormData>(
