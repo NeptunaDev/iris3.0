@@ -1,26 +1,42 @@
 "use client";
-import { Button, Checkbox, Stack, Typography } from "@mui/material";
+import {
+  Button,
+  Checkbox,
+  Stack,
+  TextField,
+  Typography,
+  styled,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { inputs } from "./data";
-import { AP, FormData, Params, Site, View } from "./interfaces";
+import { AP, FormData, OTPState, Params, Site, View } from "./interfaces";
 import { Input } from "@/Components/Input/Input";
 import theme from "../../theme/theme";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
-import { any } from "joi";
+import { MuiOtpInput } from "mui-one-time-password-input";
+
+const MuiOtpInputStyled = styled(MuiOtpInput)`
+  display: flex;
+  gap: 30px;
+  max-width: 600px;
+  margin-inline: auto;
+  .MuiOtpInput-TextField{
+    background-color: white; /* Estilo para que cada cuadro sea blanco */
+  }
+`;
 
 export default function Page({ params }: Params) {
   const queries = getQueriesStr(
     useSearchParams().toString().replaceAll("%3A", ":").replaceAll("%2F", "/")
   );
   const { base_grant_url } = queries;
-  const url = base_grant_url + "?continue_url=" + "https://google.com";
+  const url = base_grant_url + "?continue_url=" + "https://www.velez.com.co/";
   const [isLogged, setIsLogged] = useState(false);
   const [ap, setAp] = useState<AP>({} as AP);
   const [isError, setIsError] = useState<boolean>(false);
   const [view, setView] = useState<View>({} as View);
-  console.log("🚀 ~ Page ~ view:", view);
   const [site, setSite] = useState<Site>({} as Site);
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce(
@@ -37,16 +53,28 @@ export default function Page({ params }: Params) {
   );
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showVerificationForm, setShowVerificationForm] = useState(false);
+  const [otp, setOtp] = useState<OTPState>(String);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: {
-        ...prev[name],
-        value,
-      },
-    }));
+    if (name.startsWith("Código")) {
+      setOtp((prevOtp) => ({
+        ...prevOtp,
+        [name]: value,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: {
+          ...prev[name],
+          value,
+        },
+      }));
+    }
+  };
+
+  const handleChangeOtp = (otp: string) => {
+    setOtp(otp);
   };
 
   useEffect(() => {
@@ -164,12 +192,12 @@ export default function Page({ params }: Params) {
       });
 
       const data = await response.json();
-      console.log("🚀 ~ handleSendEmail ~ data:", data)
+      console.log("🚀 ~ handleSendEmail ~ data:", data);
 
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
 
-      // setShowVerificationForm(true);
+      setShowVerificationForm(true);
     } catch (error: any) {
       console.log("error", error.message);
     }
@@ -177,14 +205,15 @@ export default function Page({ params }: Params) {
 
   const handleVerifyCode = async () => {
     const { _id } = view;
+    const code = Object.values(otp).join("");
     try {
-      const response = await fetch("/view/verify-code", {
+      const response = await fetch("/api/view/verify-code", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          code: "547395",
+          code: code,
           id_view: _id,
         }),
       });
@@ -192,6 +221,8 @@ export default function Page({ params }: Params) {
 
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
+      setIsLogged(true);
+      window.location.href = url;
     } catch (error) {
       console.log("error", error);
     }
@@ -199,6 +230,10 @@ export default function Page({ params }: Params) {
 
   return (
     <>
+      {/* <form action={url} method="GET">
+        <input type="text" />
+        <input type="submit" value="Submit" />
+      </form> */}
       <Stack
         sx={{
           backgroundImage: `url(/velezdesktop.jpg)`,
@@ -233,7 +268,7 @@ export default function Page({ params }: Params) {
                 fontWeight={"bold"}
                 color={"#fff"}
               >
-                Te damos la bienvenida!
+                Te damos la bienvenida
               </Typography>
               {inputs.map((input, index) => {
                 return (
@@ -283,19 +318,18 @@ export default function Page({ params }: Params) {
               <Button
                 onClick={handleSendEmail}
                 sx={{
-                  backgroundColor: theme.palette.primary.dark,
+                  backgroundColor: "#4D4D4D !important",
                   color: "#fff",
                   padding: "8px 16px",
-                  "&:hover": {
-                    backgroundColor: "#fff",
-                    color: theme.palette.primary.dark,
-                  },
+                  // "&:hover": {
+                  //   backgroundColor: "#fff",
+                  //   color: theme.palette.primary.dark,
+                  // },
                   width: "200px",
+                  textTransform: "none",
                 }}
                 variant="contained"
                 fullWidth
-                // disabled={!acceptedTerms}
-                //debe validar el email para que se le envie el codigo que debe ingresar
               >
                 Conectarme!
               </Button>
@@ -309,33 +343,31 @@ export default function Page({ params }: Params) {
               >
                 Introduce tu código de verificación
               </Typography>
-              {["Código 1", "Código 2", "Código 3", "Código 4"].map(
-                (label, index) => (
-                  <Input
-                    handleChange={handleChange}
-                    key={index}
-                    label={label}
-                    type="text"
-                    placeholder={`Ingrese ${label.toLowerCase()}`}
-                    value={formData[label]?.value || ""}
-                    sx={{
-                      backgroundColor: "white",
-                      color: "black",
-                      width: { md: "400px", xs: "300px" },
-                    }}
-                  />
-                )
-              )}
+              <Stack
+                sx={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: "10px",
+                  color: "red",
+                }}
+              >
+                <MuiOtpInputStyled
+                  value={otp}
+                  onChange={handleChangeOtp}
+                  length={6}
+                  sx={{}}
+                />
+              </Stack>
               <Button
                 onClick={handleVerifyCode}
                 sx={{
-                  backgroundColor: theme.palette.primary.dark,
+                  backgroundColor: "#4D4D4D !important",
                   color: "#fff",
                   padding: "8px 16px",
-                  "&:hover": {
-                    backgroundColor: "#fff",
-                    color: theme.palette.primary.dark,
-                  },
+                  // "&:hover": {
+                  //   backgroundColor: "#fff",
+                  //   color: theme.palette.primary.dark,
+                  // },
                   width: "200px",
                 }}
                 variant="contained"
