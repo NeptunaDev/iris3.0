@@ -1,4 +1,3 @@
-// src/components/Sidebar.tsx
 import React from "react";
 import {
   Box,
@@ -25,10 +24,13 @@ import { RiTableView } from "react-icons/ri";
 import MenuIcon from "@mui/icons-material/Menu";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
-const drawerWidth = 240;
+const drawerWidthLg = 270;
+const drawerWidthMd = 240;
+const drawerWidthSm = 195;
 
-const openedMixin = (theme: Theme): CSSObject => ({
+const openedMixin = (theme: Theme, drawerWidth: number): CSSObject => ({
   width: drawerWidth,
   transition: theme.transitions.create("width", {
     easing: theme.transitions.easing.sharp,
@@ -61,14 +63,15 @@ const DrawerStyled = styled(Drawer, {
   shouldForwardProp: (prop) => prop !== "open",
 })<{
   open?: boolean;
-}>(({ theme, open }) => ({
+  drawerWidth: number;
+}>(({ theme, open, drawerWidth }) => ({
   width: drawerWidth,
   flexShrink: 0,
   whiteSpace: "nowrap",
   boxSizing: "border-box",
   ...(open && {
-    ...openedMixin(theme),
-    "& .MuiDrawer-paper": openedMixin(theme),
+    ...openedMixin(theme, drawerWidth),
+    "& .MuiDrawer-paper": openedMixin(theme, drawerWidth),
   }),
   ...(!open && {
     ...closedMixin(theme),
@@ -83,7 +86,14 @@ interface Props {
 const Sidebar: React.FC<Props> = ({ window }) => {
   const theme = useTheme();
   const router = useRouter();
-  const [open, setOpen] = React.useState(false);
+
+  const isLargeScreen = useMediaQuery('(min-width: 1680px) and (min-height: 1050px)');
+  const isMediumScreen = useMediaQuery('(min-width: 1440px) and (min-height: 900px)');
+  const isSmallScreen = useMediaQuery('(min-width: 1280px) and (min-height: 900px)');
+
+  const drawerWidth = isLargeScreen ? drawerWidthLg : isMediumScreen ? drawerWidthMd : isSmallScreen ? drawerWidthSm : drawerWidthSm;
+
+  const [open, setOpen] = React.useState(true);
 
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -91,7 +101,7 @@ const Sidebar: React.FC<Props> = ({ window }) => {
 
   const handleNavigation = (path: string) => {
     router.push(path);
-    setOpen(false); // Close the drawer after navigation
+    setOpen(open);
   };
 
   const drawer = (
@@ -104,7 +114,7 @@ const Sidebar: React.FC<Props> = ({ window }) => {
 
       <Box sx={{ textAlign: "center", padding: theme.spacing(2) }}>
         <img
-          src="/image.png"
+          src="irisLogo.png"
           alt="My Image"
           style={{ width: "100%", height: "auto" }}
         />
@@ -117,11 +127,6 @@ const Sidebar: React.FC<Props> = ({ window }) => {
             icon: <FaTachometerAlt />,
             path: "/AdminDashboard",
           },
-          // {
-          //   text: "Portales Cautivos",
-          //   icon: <FaNetworkWired />,
-          //   path: "/AdminDashboard/portalCautive",
-          // },
           {
             text: "Organizaciones",
             icon: <FaSlidersH />,
@@ -150,7 +155,7 @@ const Sidebar: React.FC<Props> = ({ window }) => {
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <DrawerStyled container={container} variant="permanent" open={open}>
+      <DrawerStyled container={container} variant="permanent" open={open} drawerWidth={drawerWidth}>
         {drawer}
       </DrawerStyled>
       <Box component="main" sx={{ flexGrow: 1, p: 1 }}>

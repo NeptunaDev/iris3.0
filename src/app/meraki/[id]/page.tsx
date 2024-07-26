@@ -37,6 +37,7 @@ export default function Page({ params }: Params) {
   const [ap, setAp] = useState<AP>({} as AP);
   const [isError, setIsError] = useState<boolean>(false);
   const [view, setView] = useState<View>({} as View);
+  console.log("🚀 ~ Page ~ view:", view)
   const [site, setSite] = useState<Site>({} as Site);
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce(

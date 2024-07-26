@@ -17,7 +17,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { MdOutlineVisibility, MdOutlineVisibilityOff } from "react-icons/md";
-import Imglogo from "../../../public/image.png";
+import Imglogo from "../../../public/irisLogo.png";
 import { useTheme } from "@mui/material/styles";
 
 const styleImg = {
