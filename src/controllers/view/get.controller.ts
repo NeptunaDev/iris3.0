@@ -34,7 +34,7 @@ const get = async (queries: any, jwt: JwtPayload) => {
             if (!ap) return view
             const site = sites.find((site) => site._id.equals(ap.idSite as unknown as ObjectId))
             if (!site) return view
-            return {...view.toObject(), siteName: site.name}
+            return {...view.toObject(), siteName: site.name, siteId: site._id}
         })
 
         // Return response

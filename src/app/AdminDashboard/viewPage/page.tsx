@@ -17,6 +17,8 @@ interface InfoType {
   updatedAt: string;
   __v: number;
   _id: string;
+  siteName: string
+  siteId: string;
 }
 
 interface ProcessedInfoType {
@@ -26,7 +28,6 @@ interface ProcessedInfoType {
 
 const ViewChartPage = () => {
   const [info, setInfo] = useState<InfoType[]>([]);
-  console.log("🚀 ~ ViewChartPage ~ info:", info)
   const token = getCookie("token");
 
   useEffect(() => {
@@ -68,6 +69,17 @@ const ViewChartPage = () => {
     headerName: name,
     width: 250
   }));
+
+  useEffect(() => {
+    if(!info || info.length <= 0) return
+    const usersBySite = info.reduce((acc: { [key: string]: number }, curr: InfoType) => {
+      return {
+        ...acc,
+        [curr.siteName]: (acc[curr.siteName] || 0) + 1,
+      };
+    }, {} as { [key: string]: number });
+    console.log(usersBySite);
+  }, [info]);
 
   return (
     <Container
