@@ -14,6 +14,7 @@ interface MyJwtPayload {
 
 const AccesCard = () => {
   const [accessGrate, setAccessGrate] = useState([])
+  console.log("🚀 ~ AccesCard ~ accessGrate:", accessGrate)
   const token = getCookie("token");
 
   useEffect(() => {
@@ -25,6 +26,7 @@ const AccesCard = () => {
             Authorization: `Bearer ${token}`,
           },
         });
+        console.log("🚀 ~ fetchData ~ response:", response)
         if (!response.ok) {
           throw new Error(`Network response was not ok: ${response.status}`);
         }

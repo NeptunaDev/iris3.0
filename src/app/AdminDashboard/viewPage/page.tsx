@@ -26,7 +26,6 @@ interface ProcessedInfoType {
 
 const ViewChartPage = () => {
   const [info, setInfo] = useState<InfoType[]>([]);
-  console.log("🚀 ~ ViewChartPage ~ info:", info)
   const token = getCookie("token");
 
   useEffect(() => {
