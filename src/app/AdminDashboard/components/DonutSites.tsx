@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { getCookie } from 'cookies-next';
-import GridTableV1 from '../components/GridTable';
 import { Container } from '@mui/material';
+import { Doughnut } from 'react-chartjs-2';
 
 interface InfoItem {
   value: string; // Ajusta esto según la estructura real de los elementos dentro de 'info'
@@ -21,13 +21,9 @@ interface InfoType {
   siteId: string;
 }
 
-interface ProcessedInfoType {
-  _id: string;
-  [key: string]: any;
-}
-
-const ViewChartPage = () => {
+const DonutSitestPage = () => {
   const [info, setInfo] = useState<InfoType[]>([]);
+  const [chartData, setChartData] = useState<any>({});
   const token = getCookie("token");
 
   useEffect(() => {
@@ -36,9 +32,10 @@ const ViewChartPage = () => {
         const response = await fetch(`/api/view?isLogin=${true}`, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+              Authorization: `Bearer ${token}`,
+            },
         });
+        console.log("🚀 ~ fetchData ~ response:", response)
         if (!response.ok) {
           throw new Error(`Network response was not ok: ${response.status}`);
         }
@@ -52,34 +49,57 @@ const ViewChartPage = () => {
     fetchData();
   }, [token]);
 
-  // Procesamos los datos para incluir solo las propiedades de `info`
-  const processedInfo: ProcessedInfoType[] = info.map(item => {
-    return item.info.reduce((acc, curr, index) => {
-      acc[`info_${index}`] = curr.value;
-      return acc;
-    }, { _id: item._id } as ProcessedInfoType);
-  });
-
-  const columnNames = ['Nombre:', 'Apellido:', 'Email:', 'Rango de Edad:', 'Teléfono:', 'Profesión'];
-  //limpiar base de datos, verificar campos de formulario si envien esa informacion, y los normbres de la columna cargarlos dinamicamente
-
-  // Definición de columnas solo para `info`
-  const columns = columnNames.map((name, index) => ({
-    field: `info_${index}`,
-    headerName: name,
-    width: 250
-  }));
-
   useEffect(() => {
-    if(!info || info.length <= 0) return
+    if (!info || info.length <= 0) return;
+
     const usersBySite = info.reduce((acc: { [key: string]: number }, curr: InfoType) => {
       return {
         ...acc,
         [curr.siteName]: (acc[curr.siteName] || 0) + 1,
       };
     }, {} as { [key: string]: number });
-    console.log(usersBySite);
+    console.log("🚀 ~ usersBySite ~ usersBySite:", usersBySite)
+
+    const data = {
+      labels: Object.keys(usersBySite),
+      datasets: [
+        {
+          label: '# of Users',
+          data: Object.values(usersBySite),
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.2)',
+            'rgba(54, 162, 235, 0.2)',
+            'rgba(255, 206, 86, 0.2)',
+            'rgba(75, 192, 192, 0.2)',
+            'rgba(153, 102, 255, 0.2)',
+            'rgba(255, 159, 64, 0.2)',
+          ],
+          borderColor: [
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)',
+            'rgba(255, 159, 64, 1)',
+          ],
+          borderWidth: 1,
+        },
+      ],
+    };
+
+    setChartData(data);
   }, [info]);
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Users by Site',
+      },
+    },
+  };
 
   return (
     <Container
@@ -88,17 +108,14 @@ const ViewChartPage = () => {
         borderRadius: "20px",
         justifyContent: "center",
         alignItems: "center",
+        padding: '20px',
+        height: '400px',
+        width: '400px'
       }}
     >
-      <GridTableV1
-        title='Tabla De Registros del Portal'
-        info={processedInfo}
-        columns={columns}
-        lang={{}}
-        getRowId={(row) => row._id}
-      />
+      <Doughnut data={chartData} options={options} />
     </Container>
   );
 };
 
-export default ViewChartPage;
+export default DonutSitestPage;

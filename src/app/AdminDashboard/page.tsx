@@ -12,6 +12,7 @@ import CustomDoughnut from "./components/CustomDoughnut";
 import AccesCard from "./components/AccesCard";
 import PortalViewCard from "./components/PortalViewCard";
 import UniqueDevicesCard from "./components/UniqueDevicesCard";
+import DonutSitestPage from "./components/DonutSites";
 
 const AdminDashboard = () => {
   return (
@@ -43,6 +44,9 @@ const AdminDashboard = () => {
           <UniqueDevicesCard />
         </Stack>
       </Stack>
+        <Stack>
+          <DonutSitestPage/>
+        </Stack>
     </Container>
   );
 };
