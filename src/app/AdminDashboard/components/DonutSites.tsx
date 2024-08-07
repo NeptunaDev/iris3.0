@@ -3,6 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { getCookie } from 'cookies-next';
 import { Container } from '@mui/material';
 import { Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+
+ChartJS.register(ArcElement, Tooltip, Legend)
 
 interface InfoItem {
   value: string; // Ajusta esto según la estructura real de los elementos dentro de 'info'
@@ -21,10 +24,18 @@ interface InfoType {
   siteId: string;
 }
 
+const generateColor = () => {
+  const r = Math.floor(Math.random() * 256)
+  const g = Math.floor(Math.random() * 256)
+  const b = Math.floor(Math.random() * 256)
+  return `rgb(${r},${g},${b})`;
+}
+
 const DonutSitestPage = () => {
   const [info, setInfo] = useState<InfoType[]>([]);
   const [chartData, setChartData] = useState<any>({});
   const token = getCookie("token");
+  generateColor()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,36 +69,19 @@ const DonutSitestPage = () => {
         [curr.siteName]: (acc[curr.siteName] || 0) + 1,
       };
     }, {} as { [key: string]: number });
-    console.log("🚀 ~ usersBySite ~ usersBySite:", usersBySite)
+    console.log(usersBySite)
 
-    const data = {
+    const data2 = {
       labels: Object.keys(usersBySite),
-      datasets: [
-        {
-          label: '# of Users',
-          data: Object.values(usersBySite),
-          backgroundColor: [
-            'rgba(255, 99, 132, 0.2)',
-            'rgba(54, 162, 235, 0.2)',
-            'rgba(255, 206, 86, 0.2)',
-            'rgba(75, 192, 192, 0.2)',
-            'rgba(153, 102, 255, 0.2)',
-            'rgba(255, 159, 64, 0.2)',
-          ],
-          borderColor: [
-            'rgba(255, 99, 132, 1)',
-            'rgba(54, 162, 235, 1)',
-            'rgba(255, 206, 86, 1)',
-            'rgba(75, 192, 192, 1)',
-            'rgba(153, 102, 255, 1)',
-            'rgba(255, 159, 64, 1)',
-          ],
-          borderWidth: 1,
-        },
-      ],
+      datasets: [{
+        label: 'My First Dataset',
+        data: Object.values(usersBySite),
+        backgroundColor: Object.values(usersBySite).map(() => generateColor()),
+        hoverOffset: 4
+      }]
     };
 
-    setChartData(data);
+    setChartData(data2);
   }, [info]);
 
   const options = {
@@ -100,6 +94,8 @@ const DonutSitestPage = () => {
       },
     },
   };
+
+  if (!chartData || !chartData?.labels) return;
 
   return (
     <Container
