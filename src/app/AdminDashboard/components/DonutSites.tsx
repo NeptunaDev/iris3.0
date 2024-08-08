@@ -4,25 +4,9 @@ import { getCookie } from 'cookies-next';
 import { Container } from '@mui/material';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import { InfoType } from '../interfaces';
 
 ChartJS.register(ArcElement, Tooltip, Legend)
-
-interface InfoItem {
-  value: string; // Ajusta esto según la estructura real de los elementos dentro de 'info'
-}
-
-interface InfoType {
-  createdAt: string;
-  idAp: string;
-  info: InfoItem[];
-  isLogin: boolean;
-  mac: string;
-  updatedAt: string;
-  __v: number;
-  _id: string;
-  siteName: string
-  siteId: string;
-}
 
 const generateColor = () => {
   const r = Math.floor(Math.random() * 256)
@@ -46,7 +30,6 @@ const DonutSitestPage = () => {
               Authorization: `Bearer ${token}`,
             },
         });
-        console.log("🚀 ~ fetchData ~ response:", response)
         if (!response.ok) {
           throw new Error(`Network response was not ok: ${response.status}`);
         }
@@ -69,12 +52,11 @@ const DonutSitestPage = () => {
         [curr.siteName]: (acc[curr.siteName] || 0) + 1,
       };
     }, {} as { [key: string]: number });
-    console.log(usersBySite)
 
     const data2 = {
       labels: Object.keys(usersBySite),
       datasets: [{
-        label: 'My First Dataset',
+        label: 'Número por Sitio',
         data: Object.values(usersBySite),
         backgroundColor: Object.values(usersBySite).map(() => generateColor()),
         hoverOffset: 4
