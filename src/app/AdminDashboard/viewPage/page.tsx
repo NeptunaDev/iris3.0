@@ -3,30 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { getCookie } from 'cookies-next';
 import GridTableV1 from '../components/GridTable';
 import { Container } from '@mui/material';
-
-interface InfoItem {
-  value: string; // Ajusta esto según la estructura real de los elementos dentro de 'info'
-}
-
-interface InfoType {
-  createdAt: string;
-  idAp: string;
-  info: InfoItem[];
-  isLogin: boolean;
-  mac: string;
-  updatedAt: string;
-  __v: number;
-  _id: string;
-}
-
-interface ProcessedInfoType {
-  _id: string;
-  [key: string]: any;
-}
+import { InfoType, ProcessedInfoType } from '../interfaces';
 
 const ViewChartPage = () => {
   const [info, setInfo] = useState<InfoType[]>([]);
-  console.log("🚀 ~ ViewChartPage ~ info:", info)
   const token = getCookie("token");
 
   useEffect(() => {
@@ -53,21 +33,29 @@ const ViewChartPage = () => {
 
   // Procesamos los datos para incluir solo las propiedades de `info`
   const processedInfo: ProcessedInfoType[] = info.map(item => {
-    return item.info.reduce((acc, curr, index) => {
+    const processedItem = item.info.reduce((acc, curr, index) => {
       acc[`info_${index}`] = curr.value;
       return acc;
-    }, { _id: item._id } as ProcessedInfoType);
+    }, { 
+      _id: item._id,
+      siteName: item.siteName,
+      createdAt: item.createdAt,
+    } as ProcessedInfoType);
+    return processedItem;
   });
 
-  const columnNames = ['Nombre:', 'Apellido:', 'Email:', 'Rango de Edad:', 'Teléfono:', 'Profesión'];
-  //limpiar base de datos, verificar campos de formulario si envien esa informacion, y los normbres de la columna cargarlos dinamicamente
-
-  // Definición de columnas solo para `info`
-  const columns = columnNames.map((name, index) => ({
-    field: `info_${index}`,
-    headerName: name,
-    width: 250
-  }));
+  const columnNames = ['Nombre:', 'Apellido:', 'Email:' ,'Rango de Edad:', 'Teléfono:', 'Profesión:'];
+  
+  // Definición de columnas para `info` más `siteName` y `createdAt`
+  const columns = [
+    ...columnNames.map((name, index) => ({
+      field: `info_${index}`,
+      headerName: name,
+      width: 250
+    })),
+    { field: 'siteName', headerName: 'Nombre del Sitio:', width: 250 },
+    { field: 'createdAt', headerName: 'Fecha:', width: 250 }
+  ];
 
   return (
     <Container

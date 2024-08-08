@@ -11,13 +11,6 @@ import {
 } from "@mui/material";
 import { FiMonitor } from "react-icons/fi";
 
-interface MyJwtPayload {
-  id: string;
-  name: string;
-  iat: number;
-  exp: number;
-}
-
 const UniqueDevicesCard = () => {
   const [uniqueDevices, setUniqueDevices] = useState();
   const token = getCookie("token");

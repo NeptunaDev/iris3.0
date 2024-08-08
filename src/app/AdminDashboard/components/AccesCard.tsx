@@ -1,16 +1,8 @@
 "use client";
 import { getCookie } from "cookies-next";
 import React, { useState, useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
 import { Card, CardContent, CardHeader, IconButton, Typography } from "@mui/material";
 import { AiOutlineLogin } from "react-icons/ai";
-
-interface MyJwtPayload {
-  id: string;
-  name: string;
-  iat: number;
-  exp: number;
-}
 
 const AccesCard = () => {
   const [accessGrate, setAccessGrate] = useState([])

@@ -5,13 +5,6 @@ import { Card, CardHeader, CardContent, IconButton, Typography } from '@mui/mate
 import { FaEye } from 'react-icons/fa';
 import { getCookie } from 'cookies-next';
 
-interface MyJwtPayload {
-  id: string;
-  name: string;
-  iat: number;
-  exp: number;
-}
-
 const PortalViewCard = () => {
   const [viewPortal, setViewPortal] = useState([]);
   const token = getCookie("token");

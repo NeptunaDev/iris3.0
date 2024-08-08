@@ -12,6 +12,8 @@ import CustomDoughnut from "./components/CustomDoughnut";
 import AccesCard from "./components/AccesCard";
 import PortalViewCard from "./components/PortalViewCard";
 import UniqueDevicesCard from "./components/UniqueDevicesCard";
+import DonutSitestPage from "./components/DonutSites";
+import DonutAgesPage from "./components/DonutAges";
 
 const AdminDashboard = () => {
   return (
@@ -43,6 +45,10 @@ const AdminDashboard = () => {
           <UniqueDevicesCard />
         </Stack>
       </Stack>
+        <Stack sx = {{mt: '2rem', flexDirection: 'row', }}>
+          <DonutSitestPage/>
+          <DonutAgesPage/>
+        </Stack>
     </Container>
   );
 };
