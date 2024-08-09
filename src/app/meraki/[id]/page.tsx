@@ -256,7 +256,9 @@ export default function Page({ params }: Params) {
           sx={{
             padding: 4,
             borderRadius: 2,
-            mt: { xs: "4rem" },
+            mt: { xs: "7rem" },
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
         >
           {!showVerificationForm ? (
@@ -309,7 +311,7 @@ export default function Page({ params }: Params) {
                       },
                     }}
                   >
-                    Acepto terminos y condiciones descritos en este enlace
+                    Acepto términos y condiciones descritos en este enlace
                   </Typography>
                 </Link>
               </Stack>
