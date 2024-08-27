@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { inputs } from "./data";
-import { AP, FormData, OTPState, Params, Site, View } from "./interfaces";
+import { AP, FormData, Params, Site, View } from "./interfaces";
 import { Input } from "@/Components/Input/Input";
 import theme from "../../theme/theme";
 import Link from "next/link";
@@ -37,7 +37,6 @@ export default function Page({ params }: Params) {
   const [ap, setAp] = useState<AP>({} as AP);
   const [isError, setIsError] = useState<boolean>(false);
   const [view, setView] = useState<View>({} as View);
-  console.log("🚀 ~ Page ~ view:", view)
   const [site, setSite] = useState<Site>({} as Site);
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce(
@@ -189,9 +188,6 @@ export default function Page({ params }: Params) {
         }),
       });
 
-      const data = await response.json();
-      console.log("🚀 ~ handleSendEmail ~ data:", data);
-
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -203,7 +199,12 @@ export default function Page({ params }: Params) {
 
   const handleVerifyCode = async () => {
     const { _id } = view;
-    const code = Object.values(otp).join("");
+    const code = otp;
+    const email = formData["Email"]?.value;
+    if (!email) {
+      console.error("Email is not defined");
+      return;
+    }
     try {
       const response = await fetch("/api/view/verify-code", {
         method: "POST",
@@ -211,14 +212,32 @@ export default function Page({ params }: Params) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          code: code,
+          code,
           id_view: _id,
         }),
       });
-      const data = await response.json();
 
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
+
+        await fetch(`/api/view`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: _id,
+          isLogin: true,
+          info: [
+            {
+              label: "email",
+              value: email,
+              type: "email",
+            },
+          ],
+        }),
+      });
+
       setIsLogged(true);
       window.location.href = url;
     } catch (error) {
@@ -257,8 +276,8 @@ export default function Page({ params }: Params) {
             padding: 4,
             borderRadius: 2,
             mt: { xs: "7rem" },
-            alignItems: 'center',
-            justifyContent: 'center'
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           {!showVerificationForm ? (
