@@ -1,13 +1,56 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { getCookie } from 'cookies-next';
+import React, {useEffect, useState} from 'react';
+import {getCookie} from 'cookies-next';
 import GridTableV1 from '../components/GridTable';
-import { Container } from '@mui/material';
-import { InfoType, ProcessedInfoType } from '../interfaces';
+import {Container} from '@mui/material';
+import {InfoType, ProcessedInfoType} from '../interfaces';
 
 const ViewChartPage = () => {
   const [info, setInfo] = useState<InfoType[]>([]);
   const token = getCookie("token");
+  const [columnsName2, setColumnsName2] = useState<string[]>([])
+
+  // Procesamos los datos para incluir solo las propiedades de `info`
+  const processedInfo: ProcessedInfoType[] = info.map(item => {
+    const processedItem = item.info.reduce((acc, curr, index) => {
+      acc[`info_${index}`] = curr.value;
+      return acc;
+    }, {
+      _id: item._id,
+      siteName: item.siteName,
+      createdAt: item.createdAt,
+    } as ProcessedInfoType);
+    return processedItem;
+  });
+
+  // Definición de columnas para `info` más `siteName` y `createdAt`
+  const columns = [
+    ...columnsName2.map((name, index) => ({
+      field: `info_${index}`,
+      headerName: name,
+      width: 250
+    })),
+    {field: 'siteName', headerName: 'Nombre del Sitio:', width: 250},
+    {field: 'createdAt', headerName: 'Fecha:', width: 250}
+  ];
+
+  useEffect(() => {
+    if (!info || info.length <= 0) return
+    const quantity = Math.min(info.length, 99)
+
+    for (let i = 0; i < quantity; i++) {
+      const {info: infoView} = info[i]
+      for (const item of infoView) {
+        const {label} = item
+        if (!label) continue
+        setColumnsName2((prev) => {
+          if (prev.includes(label)) return prev
+          return [...prev, label]
+        })
+      }
+    }
+
+  }, [info]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,32 +73,6 @@ const ViewChartPage = () => {
 
     fetchData();
   }, [token]);
-
-  // Procesamos los datos para incluir solo las propiedades de `info`
-  const processedInfo: ProcessedInfoType[] = info.map(item => {
-    const processedItem = item.info.reduce((acc, curr, index) => {
-      acc[`info_${index}`] = curr.value;
-      return acc;
-    }, { 
-      _id: item._id,
-      siteName: item.siteName,
-      createdAt: item.createdAt,
-    } as ProcessedInfoType);
-    return processedItem;
-  });
-
-  const columnNames = ['Nombre:', 'Apellido:', 'Email:' ,'Rango de Edad:', 'Teléfono:', 'Profesión:'];
-  
-  // Definición de columnas para `info` más `siteName` y `createdAt`
-  const columns = [
-    ...columnNames.map((name, index) => ({
-      field: `info_${index}`,
-      headerName: name,
-      width: 250
-    })),
-    { field: 'siteName', headerName: 'Nombre del Sitio:', width: 250 },
-    { field: 'createdAt', headerName: 'Fecha:', width: 250 }
-  ];
 
   return (
     <Container
