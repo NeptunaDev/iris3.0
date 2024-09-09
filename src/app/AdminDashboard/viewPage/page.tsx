@@ -1,9 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { getCookie } from "cookies-next";
+import React, {useEffect, useState} from "react";
+import {getCookie} from "cookies-next";
 import GridTableV1 from "../components/GridTable";
-import { Container } from "@mui/material";
-import { InfoType, ProcessedInfoType } from "../interfaces";
+import {Container} from "@mui/material";
+import {InfoType, ProcessedInfoType} from "../interfaces";
 
 const ViewChartPage = () => {
   const [info, setInfo] = useState<InfoType[]>([]);
@@ -16,15 +16,16 @@ const ViewChartPage = () => {
 
     // Crear un conjunto de nombres de columnas basado en los datos disponibles
     const dynamicColumnsSet = new Set<string>();
+    const quantity = Math.min(100, info.length)
 
-    info.forEach((item) => {
+    for (let i = 0; i <= quantity; i++) {
+      const item = info[i];
       item.info.forEach((infoItem) => {
         if (infoItem.label) {
-          dynamicColumnsSet.add(infoItem.label); // Se pone si label no viene undefined, solo si pasa eso 
+          dynamicColumnsSet.add(infoItem.label); // Se pone si label no viene undefined, solo si pasa eso
         }
       });
-    });
-
+    }
     setColumnsName2(Array.from(dynamicColumnsSet));
   }, [info]);
 
@@ -55,8 +56,8 @@ const ViewChartPage = () => {
       headerName: name,
       width: 250,
     })),
-    { field: "siteName", headerName: "Nombre del Sitio:", width: 250 },
-    { field: "createdAt", headerName: "Fecha:", width: 250 },
+    {field: "siteName", headerName: "Nombre del Sitio:", width: 250},
+    {field: "createdAt", headerName: "Fecha:", width: 250},
   ];
 
   // Efecto para obtener los datos desde la API
