@@ -1,3 +1,5 @@
+import { Dayjs } from "dayjs";
+
 export interface InfoItem {
     label?: string;
     type?: string;
@@ -22,4 +24,22 @@ export interface InfoItem {
   export interface ProcessedInfoType {
     _id: string;
     [key: string]: any;
+  }
+
+  export interface CustomDatePickerProps {
+    startDate: Dayjs | null;
+    endDate: Dayjs | null;
+    onStartDateChange: (date: Dayjs | null) => void;
+    onEndDateChange: (date: Dayjs | null) => void;
+  }
+
+  export interface PortalViewCardProps {
+    dateRange: {
+      startDate: Dayjs | null;
+      endDate: Dayjs | null;
+    };
+  }
+
+  export interface PortalViewData {
+    // Define your data structure here
   }

@@ -15,9 +15,7 @@ import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
 import {
   FaTachometerAlt,
   FaWifi,
-  FaMapMarkerAlt,
   FaUsers,
-  FaNetworkWired,
   FaSlidersH,
 } from "react-icons/fa";
 import { RiTableView } from "react-icons/ri";
