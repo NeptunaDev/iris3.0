@@ -8,6 +8,8 @@ export interface Get {
   idAp: string;
   mac: string;
   isLogin: boolean;
+  startDate: string;
+  endDate: string;
 }
 
 // Get schema
@@ -18,6 +20,8 @@ const GetSchema = Joi.object<Get>({
   ),
   mac: Joi.string().description("The mac associated with the view"),
   isLogin: Joi.boolean().description("The isLogin associated with the view"),
+  startDate: Joi.string().description("The startDate associated with the view"),
+  endDate: Joi.string().description("The endDate associated with the view"),
 });
 
 // Export module

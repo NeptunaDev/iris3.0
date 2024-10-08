@@ -7,6 +7,8 @@ import { getUniqueDevicesView } from "@/controllers/view/view.controller";
 import { getQueries } from "@/utils/api/request/getQueries";
 import { verifyJwt } from "@/middlewares/jwt/verifyJwt.middleware";
 import { JwtPayload } from "jsonwebtoken";
+import validateSchema from "@/middlewares/schema/validate.middleware";
+import {GetUniqueDevicesSchema} from "@/schemas/view/getUniqueDevices";
 
 // Get view
 export async function GET(req: NextRequest) {
@@ -19,7 +21,12 @@ export async function GET(req: NextRequest) {
         { status: 401 }
       );
 
-    const res = await getUniqueDevicesView(jwt as JwtPayload);
+    const queries = getQueries(req);
+    // Validate schema
+    const resValidateSchema = validateSchema(queries, GetUniqueDevicesSchema);
+    if (resValidateSchema) return resValidateSchema;
+
+    const res = await getUniqueDevicesView(queries, jwt as JwtPayload);
     if (res instanceof Error)
       return NextResponse.json(
         { error: res.message, status: 500 },
