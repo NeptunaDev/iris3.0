@@ -40,6 +40,13 @@ export interface InfoItem {
     };
   }
 
-  export interface PortalViewData {
-    // Define your data structure here
+  export interface PortalViewItem {
+    id: number;
+  }
+  
+  export type PortalViewData = PortalViewItem[];
+
+  export interface DateRange {
+    startDate: Dayjs | null;
+    endDate: Dayjs | null;
   }

@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { getCookie } from "cookies-next";
-import { jwtDecode } from "jwt-decode";
 import {
   Card,
   CardContent,
@@ -11,22 +10,10 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { FiMonitor } from "react-icons/fi";
+import { PortalViewCardProps, PortalViewData } from "../interfaces";
 
-interface UniqueDevicesData {
-  count: number;
-}
-
-interface DateRange {
-  startDate: Date | null;
-  endDate: Date | null;
-}
-
-interface UniqueDevicesCardProps {
-  dateRange: DateRange;
-}
-
-const UniqueDevicesCard: React.FC<UniqueDevicesCardProps> = ({ dateRange }) => {
-  const [uniqueDevices, setUniqueDevices] = useState<UniqueDevicesData | null>(null);
+const UniqueDevicesCard: React.FC<PortalViewCardProps> = ({ dateRange }) => {
+  const [uniqueDevices, setUniqueDevices] = useState<PortalViewData | null>(null);
   console.log("🚀 ~ uniqueDevices:", uniqueDevices)
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,11 +21,17 @@ const UniqueDevicesCard: React.FC<UniqueDevicesCardProps> = ({ dateRange }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (dateRange.startDate && dateRange.endDate) {
-        setIsLoading(true);
-        setError(null);
-        const startDateStr = dateRange.startDate.toISOString().split('T')[0];
-        const endDateStr = dateRange.endDate.toISOString().split('T')[0];
+      setIsLoading(true);
+      setError(null);
+      
+      if (!dateRange.startDate || !dateRange.endDate) {
+        setError("Please select both start and end dates");
+        setIsLoading(false);
+        return;
+      }
+
+      const startDateStr = dateRange.startDate.format('MM/DD/YYYY');
+      const endDateStr = dateRange.endDate.format('MM/DD/YYYY');
         try {
           const response = await fetch(`/api/view/unique-devices?startDate=${startDateStr}&endDate=${endDateStr}`, {
             method: "GET",
@@ -57,7 +50,6 @@ const UniqueDevicesCard: React.FC<UniqueDevicesCardProps> = ({ dateRange }) => {
         } finally {
           setIsLoading(false);
         }
-      }
     };
 
     fetchData();
@@ -86,7 +78,7 @@ const UniqueDevicesCard: React.FC<UniqueDevicesCardProps> = ({ dateRange }) => {
         )}
         {!isLoading && !error && uniqueDevices && (
           <Typography sx={{ fontWeight: "bold", fontSize: "1.5rem" }}>
-            {uniqueDevices.count}
+            {uniqueDevices.length}
           </Typography>
         )}
       </CardContent>

@@ -2,14 +2,14 @@
 import React, {useEffect, useState} from "react";
 import {getCookie} from "cookies-next";
 import GridTableV1 from "../components/GridTable";
-import {Container} from "@mui/material";
+import {Container, CircularProgress} from "@mui/material";
 import {InfoType, ProcessedInfoType} from "../interfaces";
 
 const ViewChartPage = () => {
   const [info, setInfo] = useState<InfoType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const token = getCookie("token");
   const [columnsName2, setColumnsName2] = useState<string[]>([]);
-  console.log("🚀 ~ ViewChartPage ~ columnsName2:", columnsName2)
 
   useEffect(() => {
     if (!info || info.length <= 0) return;
@@ -18,11 +18,11 @@ const ViewChartPage = () => {
     const dynamicColumnsSet = new Set<string>();
     const quantity = Math.min(100, info.length)
 
-    for (let i = 0; i <= quantity; i++) {
+    for (let i = 0; i < quantity; i++) {
       const item = info[i];
       item.info.forEach((infoItem) => {
         if (infoItem.label) {
-          dynamicColumnsSet.add(infoItem.label); // Se pone si label no viene undefined, solo si pasa eso
+          dynamicColumnsSet.add(infoItem.label);
         }
       });
     }
@@ -36,7 +36,7 @@ const ViewChartPage = () => {
         const dataItem = item.info.find(
           (infoItem) => infoItem.label === columnName
         );
-        acc[`info_${index}`] = dataItem ? dataItem.value : ""; // Poner vacio si no hay datos que mostrar en sexo u otra tabla
+        acc[`info_${index}`] = dataItem ? dataItem.value : "";
         return acc;
       },
       {
@@ -63,6 +63,7 @@ const ViewChartPage = () => {
   // Efecto para obtener los datos desde la API
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const response = await fetch(`/api/view?isLogin=${true}`, {
           method: "GET",
@@ -77,11 +78,21 @@ const ViewChartPage = () => {
         setInfo(result.data);
       } catch (error) {
         console.log(error, "No se pudo consultar la vista");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchData();
   }, [token]);
+
+  if (isLoading) {
+    return (
+      <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
 
   return (
     <Container

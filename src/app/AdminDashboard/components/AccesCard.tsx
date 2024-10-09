@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, IconButton, Typography, CircularProgress } from "@mui/material";
 import { AiOutlineLogin } from "react-icons/ai";
 import { getCookie } from "cookies-next";
+import { PortalViewCardProps, PortalViewData } from "../interfaces";
 
 interface AccessData {
   length: number;
@@ -13,24 +14,25 @@ interface DateRange {
   endDate: Date | null;
 }
 
-interface AccesCardProps {
-  dateRange: DateRange;
-}
-
-const AccesCard: React.FC<AccesCardProps> = ({ dateRange }) => {
-  const [accessGrate, setAccessGrate] = useState<AccessData | null>(null);
-  console.log("🚀 ~ accessGrate:", accessGrate)
+const AccesCard: React.FC<PortalViewCardProps> = ({ dateRange }) => {
+  const [accessGrate, setAccessGrate] = useState<PortalViewData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const token = getCookie("token") as string;
 
   useEffect(() => {
     const fetchData = async () => {
-      if (dateRange.startDate && dateRange.endDate) {
-        setIsLoading(true);
-        setError(null);
-        const startDateStr = dateRange.startDate.toISOString().split('T')[0];
-        const endDateStr = dateRange.endDate.toISOString().split('T')[0];
+      setIsLoading(true);
+      setError(null);
+      
+      if (!dateRange.startDate || !dateRange.endDate) {
+        setError("Please select both start and end dates");
+        setIsLoading(false);
+        return;
+      }
+
+      const startDateStr = dateRange.startDate.format('MM/DD/YYYY');
+      const endDateStr = dateRange.endDate.format('MM/DD/YYYY');
         try {
           const response = await fetch(`/api/view?isLogin=true&startDate=${startDateStr}&endDate=${endDateStr}`, {
             method: "GET",
@@ -49,7 +51,6 @@ const AccesCard: React.FC<AccesCardProps> = ({ dateRange }) => {
         } finally {
           setIsLoading(false);
         }
-      }
     };
 
     fetchData();
