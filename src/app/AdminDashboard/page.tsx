@@ -63,7 +63,7 @@ const AdminDashboard: React.FC = () => {
       </Stack>
       <Stack sx={{ mt: "2rem", flexDirection: "row" }}>
         <DonutSitestPage />
-        <DonutAgesPage />
+        {/*<DonutAgesPage />*/}
       </Stack>
     </Container>
   );

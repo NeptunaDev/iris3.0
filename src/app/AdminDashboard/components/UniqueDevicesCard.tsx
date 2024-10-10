@@ -10,11 +10,10 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { FiMonitor } from "react-icons/fi";
-import { PortalViewCardProps, PortalViewData } from "../interfaces";
+import { PortalViewCardProps } from "../interfaces";
 
 const UniqueDevicesCard: React.FC<PortalViewCardProps> = ({ dateRange }) => {
-  const [uniqueDevices, setUniqueDevices] = useState<PortalViewData | null>(null);
-  console.log("🚀 ~ uniqueDevices:", uniqueDevices)
+  const [uniqueDevices, setUniqueDevices] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const token = getCookie("token") as string;
@@ -78,7 +77,7 @@ const UniqueDevicesCard: React.FC<PortalViewCardProps> = ({ dateRange }) => {
         )}
         {!isLoading && !error && uniqueDevices && (
           <Typography sx={{ fontWeight: "bold", fontSize: "1.5rem" }}>
-            {uniqueDevices.length}
+            {uniqueDevices}
           </Typography>
         )}
       </CardContent>

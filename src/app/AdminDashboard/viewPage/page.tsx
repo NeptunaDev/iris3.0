@@ -4,13 +4,18 @@ import {getCookie} from "cookies-next";
 import GridTableV1 from "../components/GridTable";
 import {Container, CircularProgress} from "@mui/material";
 import {InfoType, ProcessedInfoType} from "../interfaces";
+import DonutAgesPage from "@/app/AdminDashboard/components/DonutAges";
+import {Column} from "@/app/AdminDashboard/viewPage/interface/column.interface";
+import {useAgeDonut} from "@/app/AdminDashboard/viewPage/hooks/useAgeDonut";
 
 const ViewChartPage = () => {
   const [info, setInfo] = useState<InfoType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const token = getCookie("token");
-  const [columnsName2, setColumnsName2] = useState<string[]>([]);
+  const [columnsName2, setColumnsName2] = useState<Column[]>([]);
+  const { canUse: canUseDonut } = useAgeDonut(columnsName2);
 
+  // Efecto para crear las columnas dinámicas de la tabla
   useEffect(() => {
     if (!info || info.length <= 0) return;
 
@@ -26,7 +31,16 @@ const ViewChartPage = () => {
         }
       });
     }
-    setColumnsName2(Array.from(dynamicColumnsSet));
+    const columns: Column[] = [
+      ...Array.from(dynamicColumnsSet).map((name, index) => ({
+        field: `info_${index}`,
+        headerName: name,
+        width: 250,
+      })),
+      {field: "siteName", headerName: "Nombre del Sitio:", width: 250},
+      {field: "createdAt", headerName: "Fecha:", width: 250},
+    ];
+    setColumnsName2(columns);
   }, [info]);
 
   // Poner la informacion correcta en cada fila
@@ -34,7 +48,7 @@ const ViewChartPage = () => {
     const processedItem = columnsName2.reduce(
       (acc, columnName, index) => {
         const dataItem = item.info.find(
-          (infoItem) => infoItem.label === columnName
+          (infoItem) => infoItem.label === columnName.headerName
         );
         acc[`info_${index}`] = dataItem ? dataItem.value : "";
         return acc;
@@ -48,17 +62,6 @@ const ViewChartPage = () => {
 
     return processedItem;
   });
-
-  // Definición dinámica de columnas para la tabla
-  const columns = [
-    ...columnsName2.map((name, index) => ({
-      field: `info_${index}`,
-      headerName: name,
-      width: 250,
-    })),
-    {field: "siteName", headerName: "Nombre del Sitio:", width: 250},
-    {field: "createdAt", headerName: "Fecha:", width: 250},
-  ];
 
   // Efecto para obtener los datos desde la API
   useEffect(() => {
@@ -106,10 +109,11 @@ const ViewChartPage = () => {
       <GridTableV1
         title="Tabla De Registros del Portal"
         info={processedInfo}
-        columns={columns}
+        columns={columnsName2}
         lang={{}}
         getRowId={(row) => row._id}
       />
+      {canUseDonut && <DonutAgesPage/>}
     </Container>
   );
 };
