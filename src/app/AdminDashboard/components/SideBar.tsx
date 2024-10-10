@@ -3,28 +3,23 @@ import {
   Box,
   Drawer,
   List,
-  ListItem,
   ListItemIcon,
   ListItemText,
-  Toolbar,
   IconButton,
-  CssBaseline,
-  AppBar,
+  CssBaseline, ListItemButton,
 } from "@mui/material";
 import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
 import {
   FaTachometerAlt,
   FaWifi,
-  FaMapMarkerAlt,
   FaUsers,
-  FaNetworkWired,
   FaSlidersH,
 } from "react-icons/fa";
 import { RiTableView } from "react-icons/ri";
 import MenuIcon from "@mui/icons-material/Menu";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import Image from "next/image";
 
 const drawerWidthLg = 270;
 const drawerWidthMd = 240;
@@ -113,11 +108,7 @@ const Sidebar: React.FC<Props> = ({ window }) => {
       </DrawerHeader>
 
       <Box sx={{ textAlign: "center", padding: theme.spacing(2) }}>
-        <img
-          src="irisLogo.png"
-          alt="My Image"
-          style={{ width: "100%", height: "auto" }}
-        />
+        <Image src={'/irisLogo.png'} alt={"Iris Logo"}  style={{ width: "100%", height: "auto" }} width={100} height={10} />
       </Box>
 
       <List>
@@ -128,7 +119,7 @@ const Sidebar: React.FC<Props> = ({ window }) => {
             path: "/AdminDashboard",
           },
           {
-            text: "Organizaciones",
+            text: "Organizations",
             icon: <FaSlidersH />,
             path: "/AdminDashboard/controllersAdd",
           },
@@ -136,14 +127,13 @@ const Sidebar: React.FC<Props> = ({ window }) => {
           { text: "AP", icon: <FaWifi />, path: "/AdminDashboard/apAdd" },
           { text: "Vistas", icon: <RiTableView />, path: "/AdminDashboard/viewPage" },
         ].map((item, index) => (
-          <ListItem
-            button
+          <ListItemButton
             key={index}
             onClick={() => handleNavigation(item.path)}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
-          </ListItem>
+          </ListItemButton>
         ))}
       </List>
     </div>
