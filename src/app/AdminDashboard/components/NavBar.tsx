@@ -17,7 +17,6 @@ import {
 import { styled, alpha } from "@mui/material/styles";
 import { FaBell, FaUserCircle, FaSignOutAlt, FaUser } from "react-icons/fa";
 import MenuIcon from "@mui/icons-material/Menu";
-import SearchIcon from "@mui/icons-material/Search";
 import { deleteCookie, getCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
