@@ -29,7 +29,7 @@ interface PortalCautiveProps {
     acceptedTerms: boolean;
     setAcceptedTerms: (value: boolean) => void;
     sendForm: () => void;
-  }
+}
 
 export const PortalCautive: React.FC<PortalCautiveProps> = ({ 
   formData,
