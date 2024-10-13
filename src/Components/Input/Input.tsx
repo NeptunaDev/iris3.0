@@ -6,7 +6,9 @@ interface InputProps {
   value: string;
   placeholder?: string;
   handleChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  sx?: SxProps
+  sx?: SxProps;
+  error?: boolean;
+  errorMessage?: string;
 }
 
 export function Input({
@@ -15,7 +17,9 @@ export function Input({
   placeholder,
   handleChange,
   value,
-  sx
+  sx,
+  error,
+  errorMessage
 }: InputProps) {
   return (
     <FormControl>
@@ -35,6 +39,8 @@ export function Input({
         id={`id-${label}`}
         variant="outlined"
         value={value}
+        error={error}
+        helperText={error ? errorMessage : ""}
         sx={{
           "& .MuiInputBase-colorPrimary": {
             color: "#CCC",

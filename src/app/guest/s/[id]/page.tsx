@@ -1,76 +1,46 @@
 "use client";
-import { Input } from "@/Components/Input/Input";
-import {
-  Box,
-  Button,
-  SelectChangeEvent,
-  Stack,
-  Typography,
-} from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { inputs } from "./data";
-import { SelectInput } from "@/Components/Input/SelectInput";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
-import Image from "next/image";
-import ImageNetmask from "../../../../../public/netmask.png";
-import Imglogo from "../../../../../public/ecorza.png";
-import theme from "@/app/theme/theme";
-import Checkbox from "@mui/material/Checkbox";
-import Link from "next/link";
-import { AP, Params, Site, View, FormData } from "./interfaces";
 
-const styleImg = {
-  width: "100%",
-  height: "100%",
-};
+import { inputs } from "./data";
 
-export default function PortalCautive({ params }: Params) {
+import { AP, Params, Site, View } from "./interfaces";
+import { useFormData } from "./useFormData";
+import { connectUser, createView, fetchAP, fetchSite, updateView } from "./apiUtils";
+import { PortalCautive } from "./PortalCautiveView";
+
+const PortalCautiveView: React.FC<Params> = ({ params }) => {
   const queries = getQueriesStr(useSearchParams().toString());
   const router = useRouter();
   const [isError, setIsError] = useState<boolean>(false);
   const [site, setSite] = useState<Site>({} as Site);
   const [ap, setAp] = useState<AP>({} as AP);
   const [view, setView] = useState<View>({} as View);
-
-  const [formData, setFormData] = useState<FormData>(
-    inputs.reduce(
-      (acc, input) => ({
-        ...acc,
-        [input.label]: {
-          label: input.label,
-          value: input?.options?.[0] || "",
-          type: input.type,
-        },
-      }),
-      {}
-    )
-  );
-
   const [isLogged, setIsLogged] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: {
-        ...prev[name],
-        value,
-      },
-    }));
-  };
+  const { formData, handleChange, handleChangeSelect } = useFormData(inputs);
 
-  const handleChangeSelect = (e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: {
-        ...prev[name],
-        value,
-      },
-    }));
-  };
+  useEffect(() => {
+    fetchSite(params.id)
+      .then(setSite)
+      .catch(() => setIsError(true));
+  }, [params.id]);
+
+  useEffect(() => {
+    if (!site?._id || !queries?.ap) return;
+    fetchAP(site._id, queries.ap.replaceAll("%3A", ":"))
+      .then(setAp)
+      .catch(() => setIsError(true));
+  }, [queries?.ap, site._id]);
+
+  useEffect(() => {
+    if (!ap?._id || !queries?.id || view?._id) return;
+    createView(ap._id, queries.id.replaceAll("%3A", ":"))
+      .then(setView)
+      .catch(() => setIsError(true));
+  }, [queries?.id, view._id, ap._id]);
 
   const sendForm = async () => {
     if (!acceptedTerms) {
@@ -78,247 +48,44 @@ export default function PortalCautive({ params }: Params) {
       return;
     }
 
-    const responseConn = await fetch(
-      `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/connecting`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: queries.id.replaceAll("%3A", ":"),
-          ap: queries.ap.replaceAll("%3A", ":"),
-          site: params.id,
-          idSite: site._id,
-        }),
-      }
-    );
-
-    if (!responseConn.ok) {
-      // No puede entrar
+    const hasErrors = Object.values(formData).some((field) => field.error !== "");
+    if (hasErrors) {
+      alert('Por favor, corrija los errores en el formulario antes de enviar.');
       return;
     }
 
-    const response = await fetch(`/api/view`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: view._id,
-        isLogin: true,
-        info: Object.values(formData),
-      }),
-    });
+    try {
+      await connectUser({
+        id: queries.id.replaceAll("%3A", ":"),
+        ap: queries.ap.replaceAll("%3A", ":"),
+        site: params.id,
+        idSite: site._id,
+      });
 
-    if (!response.ok) {
-      // No actualizo cliente
-      return;
+      await updateView(view._id, Object.values(formData));
+
+      setIsLogged(true);
+      router.push("https://www.google.com/?hl=es");
+    } catch (error) {
+      console.error("Error sending form:", error);
+      alert('Hubo un error al enviar el formulario. Por favor, intente de nuevo.');
     }
-
-    setIsLogged(true);
-    router.push("https://www.google.com/?hl=es");
   };
 
-  // Fetch site
-  useEffect(() => {
-    async function fetchUbiquitiData() {
-      const endpoint = `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/site?siteId=${params.id}`;
-      try {
-        const response = await fetch(endpoint);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setSite(data.data);
-        return data;
-      } catch (error) {
-        // Problem found site, show page of error
-        setIsError(true);
-        console.error("Error fetching data:", error);
-      }
-    }
-
-    fetchUbiquitiData();
-  }, [params.id]);
-
-  // Fetch ap
-  useEffect(() => {
-    if (!site?._id) return;
-    if (!queries?.ap) {
-      setIsError(true);
-      return;
-    }
-
-    const getData = async () => {
-      try {
-        const response = await fetch(
-          `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/ap?idSite=${
-            site._id
-          }&mac=${queries.ap.replaceAll("%3A", ":")}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setAp(data.data);
-      } catch (error) {
-        setIsError(true);
-        console.error("Error fetching data:", error);
-      }
-    };
-    getData();
-  }, [queries?.ap, site._id]);
-
-  useEffect(() => {
-    if (!ap?._id) return;
-    if (!queries?.id) {
-      setIsError(true);
-      return;
-    }
-    if (view?._id) {
-      return;
-    }
-
-    const createView = async () => {
-      try {
-        const response = await fetch(`/api/view`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            idAp: ap?._id,
-            mac: queries?.id.replaceAll("%3A", ":"),
-          }),
-        });
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        setView(() => ({ ...data.data }));
-      } catch (error) {
-        setIsError(true);
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    createView();
-  }, [queries?.id, view._id, ap._id]);
-
   if (isError) {
-    return (
-      <Stack>
-        <h1>Hubo un error</h1>
-      </Stack>
-    );
+    return <h1>Hubo un error</h1>;
   }
 
   return (
-    <Stack bgcolor={"white"} minHeight={"100vh"} alignItems={"center"} py={5}>
-      <Stack
-        width={{
-          md: "80%",
-          xs: "90%",
-        }}
-        alignItems={"center"}
-      >
-        <Box
-          flexGrow={1}
-          textAlign="center"
-          justifyContent={"space-between"}
-          display={"flex"}
-        >
-          <Box>
-            <Image
-              src={Imglogo}
-              alt="logo"
-              style={styleImg}
-              objectFit="cover"
-            />
-          </Box>
-          <Box p={2}>
-            <Image
-              src={ImageNetmask}
-              alt="logo"
-              style={styleImg}
-              objectFit="cover"
-            />
-          </Box>
-        </Box>
-        <Typography fontSize={"1.3REM"} fontWeight={500} color={"#000"}>
-          Bienvenido al WIFI
-        </Typography>
-        <Typography fontSize={"1rem"} fontWeight={500} color={"#000"}>
-          Para conectarte por favor diligencia o actualiza tus datos.
-        </Typography>
-      </Stack>
-      <Stack
-        width={{
-          md: "60%",
-          xs: "80%",
-        }}
-        maxWidth={"600px"}
-        gap={3}
-      >
-        {inputs.map((input, index) => {
-          if (input.type === "select") {
-            return (
-              <SelectInput
-                key={index}
-                label={input.label}
-                value={formData[input.label].value}
-                handleChange={handleChangeSelect}
-                options={input.options || [""]}
-              />
-            );
-          }
-          return (
-            <Input
-              handleChange={handleChange}
-              key={index}
-              label={input.label}
-              type={input.type}
-              placeholder={input?.placeholder}
-              value={formData[input.label].value}
-            />
-          );
-        })}
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Checkbox
-            checked={acceptedTerms}
-            onChange={(e) => setAcceptedTerms(e.target.checked)}
-          />
-          <Link href="https://www.ciscocolombia.co/pages/politica-de-privacidad" passHref>
-            <Typography>
-              Política de Privacidad y Tratamiento de Datos
-            </Typography>
-          </Link>
-        </Stack>
-        <Button
-          onClick={sendForm}
-          sx={{
-            backgroundColor: theme.palette.primary.dark,
-            color: "#fff",
-            padding: "8px 16px",
-            "&:hover": {
-              backgroundColor: "#fff",
-              color: theme.palette.primary.dark,
-            },
-          }}
-          variant="contained"
-          fullWidth
-          disabled={!acceptedTerms}
-        >
-          Enviar
-        </Button>
-      </Stack>
-    </Stack>
+    <PortalCautive
+      formData={formData}
+      handleChange={handleChange}
+      handleChangeSelect={handleChangeSelect}
+      acceptedTerms={acceptedTerms}
+      setAcceptedTerms={setAcceptedTerms}
+      sendForm={sendForm}
+    />
   );
 }
+
+export default PortalCautiveView;
