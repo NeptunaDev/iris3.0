@@ -6,7 +6,7 @@ export const read = async (jwt: JwtPayload) => {
   try {
     const {id: idClient, type} = jwt;
 
-    let projects = [];
+    let projects =  [];
     if (type === 'superadmin') {
       projects = await OrganizationModel.find();
     } else {
