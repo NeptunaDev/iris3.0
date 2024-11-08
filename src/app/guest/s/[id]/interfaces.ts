@@ -37,8 +37,22 @@ export interface FormData {
     idAp: string;
     mac: string;
     isLogin: boolean;
-    info: [];
+    info: ViewInfo[];
     _id: string;
     createdAt: string;
     updatedAt: string;
   }
+
+  export interface ViewInfo {
+    label: string;
+    value: string;
+    type: string;
+  }
+
+export interface FormField {
+  label: string;
+  value: string;
+  type: string;
+  error: string;
+  errorMessage: string;
+}
