@@ -1,4 +1,4 @@
-import { AP, Site, View } from "./interfaces";
+import { AP, FormField, Site, View, ViewInfo } from "./interfaces";
 
 export const fetchSite = async (siteId: string): Promise<Site> => {
   const endpoint = `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/site?siteId=${siteId}`;
@@ -36,6 +36,7 @@ export const createView = async (apId: string, mac: string): Promise<View> => {
       mac: mac,
     }),
   });
+  console.log(response)
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
@@ -59,24 +60,34 @@ export const connectUser = async (params: {
       body: JSON.stringify(params),
     }
   );
+  console.log(response)
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 };
 
-export const updateView = async (viewId: string, info: any[]): Promise<void> => {
-  const response = await fetch(`/api/view`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+export const updateView = async (viewId: string, formData: FormField[]): Promise<void> => {
+    const viewInfo: ViewInfo[] = formData.map(({ label, value, type }) => ({
+      label,
+      value,
+      type
+    }));
+  
+    const body = {
       id: viewId,
       isLogin: true,
-      info: info,
-    }),
-  });
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-};
+      info: viewInfo,
+    };
+  
+    const response = await fetch(`/api/view`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+  
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  };
