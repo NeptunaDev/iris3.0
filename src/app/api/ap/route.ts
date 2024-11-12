@@ -11,6 +11,7 @@ import { verifyJwt } from "@/middlewares/jwt/verifyJwt.middleware";
 import validateSchema from "@/middlewares/schema/validate.middleware";
 import { validateClientIsOwner } from "@/middlewares/site/site.middleware";
 import { CreateApSchema } from "@/schemas/ap/ap.schema";
+import APModel from "@/models/AP.model";
 
 connectDB();
 
@@ -22,6 +23,16 @@ export async function GET(req: Request) {
         { error: jwt.message, status: 401 },
         { status: 401 }
       );
+
+      const { type } = jwt as JwtPayload;
+
+      if (type === 'superadmin') {
+        const aps = await APModel.find();
+        return NextResponse.json(
+          { message: "AP read successfully", status: 200, data: aps },
+          { status: 200 }
+        );
+      }
 
     const res = await readApController(jwt as JwtPayload);
     return res;
