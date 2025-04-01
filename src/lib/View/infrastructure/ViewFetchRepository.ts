@@ -5,12 +5,36 @@ import { APIResponse } from "@/lib/Shared/domain/response";
 import { buildQueryString } from "@/lib/Shared/infrastructure/FetchRepository/queryUtils";
 import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";
 import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/caseUtils";
+import { ViewRepository, ViewSendEmail, ViewVerifyCode } from "../domain/ViewRepository";
 
 const API_ENDPOINTS = {
   views: `${URI_API}/view`,
 } as const;
 
-export const createViewFetchRepository = (): Repository<View> => ({
+export const createViewFetchRepository = ():ViewRepository => ({
+  verifyCode: async (viewVerifyCode: ViewVerifyCode): Promise<APIResponse<void>> => {
+    try {
+      const response = await fetch(`${API_ENDPOINTS.views}/verify-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: viewVerifyCode.code,
+          view_id: viewVerifyCode.viewId,
+        }),
+      });
+      const apiResponse = await handleApiResponse<any>(response);
+      return {
+        ...apiResponse,
+        data: transformToCamelCase(apiResponse.data)
+      };
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw createApiError('Failed to verify code');
+    }
+  },
+
   find: async (criteria?: Partial<View>): Promise<APIResponse<View[]>> => {
     const snakeCaseCriteria = criteria ? transformToSnakeCase(criteria) : undefined;
     const queryString = buildQueryString(snakeCaseCriteria);
@@ -58,7 +82,7 @@ export const createViewFetchRepository = (): Repository<View> => ({
     try {
       const snakeCaseView = transformToSnakeCase(view);
       const response = await fetch(`${API_ENDPOINTS.views}/${id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -89,4 +113,24 @@ export const createViewFetchRepository = (): Repository<View> => ({
       throw createApiError('Failed to delete view');
     }
   },
+
+  sendEmail: async (viewSendEmail: ViewSendEmail): Promise<APIResponse<void>> => {
+    try {
+      const response = await fetch(`${API_ENDPOINTS.views}/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          view_id: viewSendEmail.viewId,
+          template: viewSendEmail.template,
+          email: viewSendEmail.email,
+        }),
+      });
+      return handleApiResponse<void>(response);
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw createApiError('Failed to send email');
+    }
+  }
 }); 

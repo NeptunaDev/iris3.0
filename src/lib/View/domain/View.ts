@@ -30,23 +30,17 @@ export interface ViewIndividualInfo {
     type: FormFieldType;
 }
 
-export interface ViewInfo {
-    info: ViewIndividualInfo[];
-}
-
 export interface View {
     readonly id: string;
     readonly idAp: string;
     readonly mac: string;
-    readonly isLogin: boolean;
-    readonly info: ViewInfo | null;
-    readonly code: string | null;
+    readonly isLogin?: boolean;
+    readonly info?: ViewIndividualInfo[] | null;
+    readonly code?: string | null;
     readonly createdAt: string;
     readonly updatedAt: string;
 }
 
 export interface ViewCreate extends Omit<View, 'createdAt' | 'updatedAt' | 'id'> {}
 
-export interface ViewUpdate extends Partial<Omit<View, 'id'>> {
-    id: string;
-} 
+export interface ViewUpdate extends Partial<ViewCreate> {} 

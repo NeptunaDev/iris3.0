@@ -11,7 +11,7 @@ import {
 import { MuiOtpInput } from "mui-one-time-password-input";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { FormData, Params } from "./interfaces";
 import { inputs } from "./data";
@@ -25,7 +25,10 @@ import { createSiteService } from "@/lib/Site/application/SiteUseCase";
 import { createAPFetchRepository } from "@/lib/AP/infrastructure/APFetchRepository";
 import { createAPService } from "@/lib/AP/application/APUseCase";
 import { AP } from "@/lib/AP/domain/AP";
-import { View } from "@/lib/View/domain/View";
+import { View, ViewCreate, ViewUpdate } from "@/lib/View/domain/View";
+import { createViewFetchRepository } from "@/lib/View/infrastructure/ViewFetchRepository";
+import { createViewService } from "@/lib/View/application/ViewService";
+import { ViewSendEmail, ViewVerifyCode } from "@/lib/View/domain/ViewRepository";
 
 const MuiOtpInputStyled = styled(MuiOtpInput)`
   display: flex;
@@ -45,6 +48,8 @@ export default function Page({ params }: Params) {
   const apRepository = createAPFetchRepository();
   const apService = createAPService(apRepository);
 
+  const viewRepository = createViewFetchRepository();
+  const viewService = createViewService(viewRepository);
 
   const queries = getQueriesStr(
     useSearchParams().toString().replaceAll("%3A", ":").replaceAll("%2F", "/")
@@ -121,83 +126,87 @@ export default function Page({ params }: Params) {
     setAp(apData);
   }, [apResponse]);
 
-  const handleSendEmail = async () => {
-    if (!view) return;
-    const { id } = view;
-    const email = formData["Email"]?.value;
-    if (!email) {
-      console.error("Email is not defined");
-      return;
-    }
-    try {
-      const response = await fetch("/api/communication/email-by-view", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id_view: id,
-          template: "code_velez",
-          email: email,
-        }),
-      });
+  // Management of the view data
+  const { mutate: createView, isPending: isCreatingView } = useMutation<APIResponse<View>, Error, ViewCreate>({
+    mutationFn: (view: ViewCreate) => viewService.create(view),
+    onSuccess: (data) => {
+      setView(data.data);
+    },
+    onError: (error) => {
+      console.error("Error creating view:", error);
+    },
+  })
+  useEffect(() => {
+    const haveData = queries?.client_mac && ap?.id;
+    if (!haveData) return;
+    createView({
+      idAp: ap.id, mac: queries?.client_mac
+        .replaceAll("%3A", ":")
+        .replaceAll("%2F", "/"),
+    })
+  }, [queries?.client_mac, ap?.id])
 
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-
+  // Management of the email sending
+  const { mutate: sendEmail, isPending: isSendingEmail } = useMutation<APIResponse<void>, Error, ViewSendEmail>({
+    mutationFn: (viewSendEmail: ViewSendEmail) => viewService.sendEmail(viewSendEmail),
+    onSuccess: (data) => {
+      console.log("data", data)
       setShowVerificationForm(true);
-    } catch (error: any) {
-      console.log("error", error.message);
-    }
+    },
+    onError: (error) => {
+      console.error("Error sending email:", error);
+    },
+  })
+  const handleSendEmail = async () => {
+    const haveData = view?.id && formData["Email"]?.value;
+    if (!haveData) return;
+    sendEmail({
+      viewId: view.id,
+      template: "code_velez",
+      email: formData["Email"]?.value,
+    })
   };
 
-  const handleVerifyCode = async () => {
-    if (!view) return;
-    const { id } = view;
-    const code = otp;
-    const email = formData["Email"]?.value;
-    if (!email) {
-      console.error("Email is not defined");
-      return;
-    }
-    try {
-      const response = await fetch("/api/view/verify-code", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          code,
-          id_view: id,
-        }),
-      });
-
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-
-      await fetch(`/api/view`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: id,
-          isLogin: true,
-          info: [
-            {
-              label: "email",
-              value: email,
-              type: "email",
-            },
-          ],
-        }),
-      });
-
+  // Management of update view
+  const { mutate: updateView, isPending: isUpdatingView } = useMutation<APIResponse<View>, Error, ViewUpdate>({
+    mutationFn: (viewUpdate: ViewUpdate) => {
+      if (!view?.id) {
+        throw new Error("View ID is undefined");
+      }
+      return viewService.update(view.id, viewUpdate);
+    },
+    onSuccess: (data) => {
       setIsLogged(true);
       window.location.href = url;
-    } catch (error) {
-      console.log("error", error);
-    }
+    },
+  })
+
+  // Management of the code verification
+  const { mutate: verifyCode, isPending: isVerifyingCode } = useMutation<APIResponse<void>, Error, ViewVerifyCode>({
+    mutationFn: (viewVerifyCode: ViewVerifyCode) => viewService.verifyCode(viewVerifyCode),
+    onSuccess: (data) => {
+      if (!view) return;
+      updateView({
+        isLogin: true,
+        info: [
+          {
+            label: "email",
+            value: formData["Email"]?.value,
+            type: "email"
+          },
+        ],
+      
+      })
+    },
+  })
+
+  const handleVerifyCode = async () => {
+    const haveData = view?.id && otp;
+    if (!haveData) return;
+    verifyCode({
+      code: otp,
+      viewId: view.id,
+    })
   };
 
   return (
