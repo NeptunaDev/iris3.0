@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Button,
   Checkbox,
@@ -7,19 +8,24 @@ import {
   Typography,
   styled,
 } from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { Input } from "@/Components/Input/Input";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 
-import { AP, FormData, Params, View } from "./interfaces";
+import { FormData, Params } from "./interfaces";
 import { inputs } from "./data";
 import { APIResponse } from "@/lib/Shared/domain/response";
 import { Site } from "@/lib/Site/domain/Site";
 import { createSiteFetchRepository } from "@/lib/Site/infrastructure/SiteFetchRepository";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
+
+import { Input } from "@/Components/Input/Input";
+import { createSiteService } from "@/lib/Site/application/SiteUseCase";
+import { createAPFetchRepository } from "@/lib/AP/infrastructure/APFetchRepository";
+import { createAPService } from "@/lib/AP/application/APUseCase";
+import { AP } from "@/lib/AP/domain/AP";
+import { View } from "@/lib/View/domain/View";
 
 const MuiOtpInputStyled = styled(MuiOtpInput)`
   display: flex;
@@ -32,17 +38,25 @@ const MuiOtpInputStyled = styled(MuiOtpInput)`
 `;
 
 export default function Page({ params }: Params) {
+  // Logic with Hexagonal Architecture
+  const siteRepository = createSiteFetchRepository();
+  const siteService = createSiteService(siteRepository);
+
+  const apRepository = createAPFetchRepository();
+  const apService = createAPService(apRepository);
+
+
   const queries = getQueriesStr(
     useSearchParams().toString().replaceAll("%3A", ":").replaceAll("%2F", "/")
   );
   const { base_grant_url } = queries;
   const url = base_grant_url + "?continue_url=" + "https://www.velez.com.co/";
-  const siteRepository = createSiteFetchRepository();
+  const [site, setSite] = useState<Site | undefined>(undefined);
+  const [ap, setAp] = useState<AP | undefined>(undefined);
+
   const [isLogged, setIsLogged] = useState(false);
-  const [ap, setAp] = useState<AP>({} as AP);
   const [isError, setIsError] = useState<boolean>(false);
-  const [view, setView] = useState<View>({} as View);
-  const [site, setSite] = useState<Site>({} as Site);
+  const [view, setView] = useState<View | undefined>(undefined);
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce(
       (acc, input) => ({
@@ -80,11 +94,11 @@ export default function Page({ params }: Params) {
   };
 
   // Management of the site data
-  const { data: siteResponse, isLoading, error } = useQuery<APIResponse<Site[]>, Error>({
+  const { data: siteResponse, isLoading: isLoadingSite, error: errorSite } = useQuery<APIResponse<Site[]>, Error>({
     queryKey: ["Site", params.id],
-    queryFn: () => siteRepository.find({ site_id: params.id }),
+    queryFn: () => siteService.find({ siteId: params.id }),
+    enabled: !!params.id,
   });
-
   useEffect(() => {
     const siteData = siteResponse?.data?.[0];
     if (!siteData) {
@@ -93,79 +107,23 @@ export default function Page({ params }: Params) {
     setSite(siteData);
   }, [siteResponse]);
 
+  // Management of the AP data
+  const { data: apResponse, isLoading: isLoadingAP, error: errorAP } = useQuery<APIResponse<AP[]>, Error>({
+    queryKey: ["AP", site?.id, queries?.node_mac],
+    queryFn: () => apService.find({ idSite: site?.id, mac: queries?.node_mac }),
+    enabled: !!site?.id && !!queries?.node_mac
+  })
   useEffect(() => {
-    if (!site?.id) return;
-    if (!queries?.node_mac) {
-      setIsError(true);
+    const apData = apResponse?.data?.[0];
+    if (!apData) {
       return;
     }
-
-    const getData = async () => {
-      try {
-        const response = await fetch(
-          `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/ap?idSite=${site.id
-          }&mac=${queries.node_mac
-            .replaceAll("%3A", ":")
-            .replaceAll("%2F", "/")}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setAp(data.data);
-      } catch (error) {
-        setIsError(true);
-        console.error("Error fetching data:", error);
-      }
-    };
-    getData();
-  }, [queries?.node_mac, site.id]);
-
-  useEffect(() => {
-    if (!ap?._id) return;
-    if (!queries?.client_mac) {
-      setIsError(true);
-      return;
-    }
-    if (view?._id) {
-      return;
-    }
-
-    const createView = async () => {
-      try {
-        const response = await fetch(`/api/view`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            idAp: ap?._id,
-            mac: queries?.client_mac
-              .replaceAll("%3A", ":")
-              .replaceAll("%2F", "/"),
-          }),
-        });
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        setView(() => ({ ...data.data }));
-      } catch (error) {
-        setIsError(true);
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    createView();
-  }, [queries?.client_mac, view._id, ap._id]);
+    setAp(apData);
+  }, [apResponse]);
 
   const handleSendEmail = async () => {
-    const { _id } = view;
+    if (!view) return;
+    const { id } = view;
     const email = formData["Email"]?.value;
     if (!email) {
       console.error("Email is not defined");
@@ -178,7 +136,7 @@ export default function Page({ params }: Params) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id_view: _id,
+          id_view: id,
           template: "code_velez",
           email: email,
         }),
@@ -194,7 +152,8 @@ export default function Page({ params }: Params) {
   };
 
   const handleVerifyCode = async () => {
-    const { _id } = view;
+    if (!view) return;
+    const { id } = view;
     const code = otp;
     const email = formData["Email"]?.value;
     if (!email) {
@@ -209,7 +168,7 @@ export default function Page({ params }: Params) {
         },
         body: JSON.stringify({
           code,
-          id_view: _id,
+          id_view: id,
         }),
       });
 
@@ -222,7 +181,7 @@ export default function Page({ params }: Params) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id: _id,
+          id: id,
           isLogin: true,
           info: [
             {

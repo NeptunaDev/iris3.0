@@ -1,9 +1,10 @@
-import {  Site, SiteCreate, SiteUpdate } from "../domain/Site";
+import { Site, SiteCreate, SiteUpdate } from "../domain/Site";
 import { URI_API } from "@/configuration/config";
 import { Repository } from "@/lib/Shared/domain/repository";
 import { APIResponse } from "@/lib/Shared/domain/response";
 import { buildQueryString } from "@/lib/Shared/infrastructure/FetchRepository/queryUtils";
 import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";
+import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/caseUtils";
 
 const API_ENDPOINTS = {
   sites: `${URI_API}/site`,
@@ -11,7 +12,8 @@ const API_ENDPOINTS = {
 
 export const createSiteFetchRepository = (): Repository<Site> => ({
   find: async (criteria?: Partial<Site>): Promise<APIResponse<Site[]>> => {
-    const queryString = buildQueryString(criteria);
+    const snakeCaseCriteria = criteria ? transformToSnakeCase(criteria) : undefined;
+    const queryString = buildQueryString(snakeCaseCriteria);
     const URI = queryString ? `${API_ENDPOINTS.sites}${queryString}` : API_ENDPOINTS.sites;
     try {
       const response = await fetch(URI, {
@@ -20,7 +22,11 @@ export const createSiteFetchRepository = (): Repository<Site> => ({
           'Content-Type': 'application/json',
         },
       });
-      return handleApiResponse<Site[]>(response);
+      const apiResponse = await handleApiResponse<any[]>(response);
+      return {
+        ...apiResponse,
+        data: transformToCamelCase(apiResponse.data)
+      };
     } catch (error) {
       if (error instanceof Error) throw error;
       throw createApiError('Failed to fetch sites');
@@ -29,14 +35,19 @@ export const createSiteFetchRepository = (): Repository<Site> => ({
 
   create: async (site: SiteCreate): Promise<APIResponse<Site>> => {
     try {
+      const snakeCaseSite = transformToSnakeCase(site);
       const response = await fetch(API_ENDPOINTS.sites, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(site),
+        body: JSON.stringify(snakeCaseSite),
       });
-      return handleApiResponse<Site>(response);
+      const apiResponse = await handleApiResponse<any>(response);
+      return {
+        ...apiResponse,
+        data: transformToCamelCase(apiResponse.data)
+      };
     } catch (error) {
       if (error instanceof Error) throw error;
       throw createApiError('Failed to create site');
@@ -45,14 +56,19 @@ export const createSiteFetchRepository = (): Repository<Site> => ({
 
   update: async (id: string, site: SiteUpdate): Promise<APIResponse<Site>> => {
     try {
+      const snakeCaseSite = transformToSnakeCase(site);
       const response = await fetch(`${API_ENDPOINTS.sites}/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(site),
+        body: JSON.stringify(snakeCaseSite),
       });
-      return handleApiResponse<Site>(response);
+      const apiResponse = await handleApiResponse<any>(response);
+      return {
+        ...apiResponse,
+        data: transformToCamelCase(apiResponse.data)
+      };
     } catch (error) {
       if (error instanceof Error) throw error;
       throw createApiError('Failed to update site');

@@ -1,19 +1,22 @@
-import { Repository } from "@/lib/Shared/domain/repository";
-import { Client, ClientCreate, ClientUpdate } from "../domain/Client";
+import { AP, APCreate, APUpdate } from "../domain/AP";
 import { URI_API } from "@/configuration/config";
-import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";
+import { Repository } from "@/lib/Shared/domain/repository";
 import { APIResponse } from "@/lib/Shared/domain/response";
+import { buildQueryString } from "@/lib/Shared/infrastructure/FetchRepository/queryUtils";
+import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";
 import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/caseUtils";
 
 const API_ENDPOINTS = {
-  clients: `${URI_API}/api/clients`,
+  aps: `${URI_API}/ap`,
 } as const;
 
-export const createClientFetchRepository = (): Repository<Client> => ({
-  find: async (criteria?: Partial<Client>): Promise<APIResponse<Client[]>> => {
+export const createAPFetchRepository = (): Repository<AP> => ({
+  find: async (criteria?: Partial<AP>): Promise<APIResponse<AP[]>> => {
+    const snakeCaseCriteria = criteria ? transformToSnakeCase(criteria) : undefined;
+    const queryString = buildQueryString(snakeCaseCriteria);
+    const URI = queryString ? `${API_ENDPOINTS.aps}${queryString}` : API_ENDPOINTS.aps;
     try {
-      const snakeCaseCriteria = criteria ? transformToSnakeCase(criteria) : undefined;
-      const response = await fetch(API_ENDPOINTS.clients, {
+      const response = await fetch(URI, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -26,19 +29,19 @@ export const createClientFetchRepository = (): Repository<Client> => ({
       };
     } catch (error) {
       if (error instanceof Error) throw error;
-      throw createApiError('Failed to fetch clients');
+      throw createApiError('Failed to fetch APs');
     }
   },
 
-  create: async (clientCreate: ClientCreate): Promise<APIResponse<Client>> => {
+  create: async (ap: APCreate): Promise<APIResponse<AP>> => {
     try {
-      const snakeCaseClient = transformToSnakeCase(clientCreate);
-      const response = await fetch(API_ENDPOINTS.clients, {
+      const snakeCaseAp = transformToSnakeCase(ap);
+      const response = await fetch(API_ENDPOINTS.aps, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(snakeCaseClient),
+        body: JSON.stringify(snakeCaseAp),
       });
       const apiResponse = await handleApiResponse<any>(response);
       return {
@@ -47,19 +50,19 @@ export const createClientFetchRepository = (): Repository<Client> => ({
       };
     } catch (error) {
       if (error instanceof Error) throw error;
-      throw createApiError('Failed to create client');
+      throw createApiError('Failed to create AP');
     }
   },
 
-  update: async (id: string, clientUpdate: ClientUpdate): Promise<APIResponse<Client>> => {
+  update: async (id: string, ap: APUpdate): Promise<APIResponse<AP>> => {
     try {
-      const snakeCaseClient = transformToSnakeCase(clientUpdate);
-      const response = await fetch(`${API_ENDPOINTS.clients}/${id}`, {
+      const snakeCaseAp = transformToSnakeCase(ap);
+      const response = await fetch(`${API_ENDPOINTS.aps}/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(snakeCaseClient),
+        body: JSON.stringify(snakeCaseAp),
       });
       const apiResponse = await handleApiResponse<any>(response);
       return {
@@ -68,13 +71,13 @@ export const createClientFetchRepository = (): Repository<Client> => ({
       };
     } catch (error) {
       if (error instanceof Error) throw error;
-      throw createApiError('Failed to update client');
+      throw createApiError('Failed to update AP');
     }
   },
 
   remove: async (id: string): Promise<APIResponse<void>> => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.clients}/${id}`, {
+      const response = await fetch(`${API_ENDPOINTS.aps}/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +86,7 @@ export const createClientFetchRepository = (): Repository<Client> => ({
       return handleApiResponse<void>(response);
     } catch (error) {
       if (error instanceof Error) throw error;
-      throw createApiError('Failed to delete client');
+      throw createApiError('Failed to delete AP');
     }
   },
-});
+}); 
