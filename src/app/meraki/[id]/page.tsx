@@ -1,21 +1,25 @@
 "use client";
+
 import {
   Button,
   Checkbox,
   Stack,
-  TextField,
   Typography,
   styled,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import { inputs } from "./data";
-import { AP, FormData, Params, Site, View } from "./interfaces";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Input } from "@/Components/Input/Input";
-import theme from "../../theme/theme";
+import { MuiOtpInput } from "mui-one-time-password-input";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+
+import { AP, FormData, Params, View } from "./interfaces";
+import { inputs } from "./data";
+import { APIResponse } from "@/lib/Shared/domain/response";
+import { Site } from "@/lib/Site/domain/Site";
+import { createSiteFetchRepository } from "@/lib/Site/infrastructure/SiteFetchRepository";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
-import { MuiOtpInput } from "mui-one-time-password-input";
 
 const MuiOtpInputStyled = styled(MuiOtpInput)`
   display: flex;
@@ -33,6 +37,7 @@ export default function Page({ params }: Params) {
   );
   const { base_grant_url } = queries;
   const url = base_grant_url + "?continue_url=" + "https://www.velez.com.co/";
+  const siteRepository = createSiteFetchRepository();
   const [isLogged, setIsLogged] = useState(false);
   const [ap, setAp] = useState<AP>({} as AP);
   const [isError, setIsError] = useState<boolean>(false);
@@ -74,30 +79,22 @@ export default function Page({ params }: Params) {
     setOtp(otp);
   };
 
-  useEffect(() => {
-    async function fetchUbiquitiData() {
-      const endpoint = `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/site?siteId=${params.id}`;
-      try {
-        const response = await fetch(endpoint);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+  // Management of the site data
+  const { data: siteResponse, isLoading, error } = useQuery<APIResponse<Site[]>, Error>({
+    queryKey: ["Site", params.id],
+    queryFn: () => siteRepository.find({ site_id: params.id }),
+  });
 
-        const data = await response.json();
-        setSite(data.data);
-        return data;
-      } catch (error) {
-        // Problem found site, show page of error
-        setIsError(true);
-        console.error("Error fetching data:", error);
-      }
+  useEffect(() => {
+    const siteData = siteResponse?.data?.[0];
+    if (!siteData) {
+      return;
     }
-
-    fetchUbiquitiData();
-  }, [params.id]);
+    setSite(siteData);
+  }, [siteResponse]);
 
   useEffect(() => {
-    if (!site?._id) return;
+    if (!site?.id) return;
     if (!queries?.node_mac) {
       setIsError(true);
       return;
@@ -106,8 +103,7 @@ export default function Page({ params }: Params) {
     const getData = async () => {
       try {
         const response = await fetch(
-          `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/ap?idSite=${
-            site._id
+          `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/ap?idSite=${site.id
           }&mac=${queries.node_mac
             .replaceAll("%3A", ":")
             .replaceAll("%2F", "/")}`,
@@ -129,7 +125,7 @@ export default function Page({ params }: Params) {
       }
     };
     getData();
-  }, [queries?.node_mac, site._id]);
+  }, [queries?.node_mac, site.id]);
 
   useEffect(() => {
     if (!ap?._id) return;
@@ -220,7 +216,7 @@ export default function Page({ params }: Params) {
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
 
-        await fetch(`/api/view`, {
+      await fetch(`/api/view`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -247,10 +243,6 @@ export default function Page({ params }: Params) {
 
   return (
     <>
-      {/* <form action={url} method="GET">
-        <input type="text" />
-        <input type="submit" value="Submit" />
-      </form> */}
       <Stack
         sx={{
           backgroundImage: `url(/velezdesktop.jpg)`,
@@ -340,10 +332,6 @@ export default function Page({ params }: Params) {
                   backgroundColor: "#4D4D4D !important",
                   color: "#fff",
                   padding: "8px 16px",
-                  // "&:hover": {
-                  //   backgroundColor: "#fff",
-                  //   color: theme.palette.primary.dark,
-                  // },
                   width: "200px",
                   textTransform: "none",
                 }}
@@ -383,10 +371,6 @@ export default function Page({ params }: Params) {
                   backgroundColor: "#4D4D4D !important",
                   color: "#fff",
                   padding: "8px 16px",
-                  // "&:hover": {
-                  //   backgroundColor: "#fff",
-                  //   color: theme.palette.primary.dark,
-                  // },
                   width: "200px",
                 }}
                 variant="contained"

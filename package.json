@@ -18,6 +18,8 @@
     "@mui/x-data-grid": "^7.19.0",
     "@mui/x-date-pickers": "^7.19.0",
     "@reduxjs/toolkit": "^2.2.3",
+    "@tanstack/react-query": "^5.71.1",
+    "@tanstack/react-query-devtools": "^5.71.1",
     "chart.js": "^4.4.3",
     "chartjs-plugin-datalabels": "^2.2.0",
     "cookies-next": "^4.1.1",
