@@ -7,16 +7,14 @@ import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/
 import { URI_API } from "@/configuration/config.client";
 
 const API_ENDPOINTS = {
-  sites: `${URI_API}/site/`,
+  sites: `${URI_API}site/`,
 } as const;
 
 export const createSiteFetchRepository = (): Repository<Site> => ({
   find: async (criteria?: Partial<Site>): Promise<APIResponse<Site[]>> => {
-    console.log(`URI_API: ${URI_API}`);
     const snakeCaseCriteria = criteria ? transformToSnakeCase(criteria) : undefined;
     const queryString = buildQueryString(snakeCaseCriteria);
     const URI = queryString ? `${API_ENDPOINTS.sites}${queryString}` : API_ENDPOINTS.sites;
-    console.log(`URI: ${URI}`);
     try {
       const response = await fetch(URI, {
         method: 'GET',
@@ -59,7 +57,7 @@ export const createSiteFetchRepository = (): Repository<Site> => ({
   update: async (id: string, site: SiteUpdate): Promise<APIResponse<Site>> => {
     try {
       const snakeCaseSite = transformToSnakeCase(site);
-      const response = await fetch(`${API_ENDPOINTS.sites}/${id}`, {
+      const response = await fetch(`${API_ENDPOINTS.sites}/${id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +77,7 @@ export const createSiteFetchRepository = (): Repository<Site> => ({
 
   remove: async (id: string): Promise<APIResponse<void>> => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.sites}/${id}`, {
+      const response = await fetch(`${API_ENDPOINTS.sites}/${id}/`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

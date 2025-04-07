@@ -3,13 +3,13 @@ import { URI_API } from "@/configuration/config.client";
 import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";
 
 const API_ENDPOINTS = {
-  auth: `${URI_API}/auth/`,
+  auth: `${URI_API}auth/`,
 } as const;
 
 export const createAuthFetchRepository = (): AuthRepository => ({
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.auth}/login`, {
+      const response = await fetch(`${API_ENDPOINTS.auth}login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

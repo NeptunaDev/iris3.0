@@ -7,7 +7,7 @@ import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/F
 import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/caseUtils";
 
 const API_ENDPOINTS = {
-  aps: `${URI_API}/ap/`,
+  aps: `${URI_API}ap/`,
 } as const;
 
 export const createAPFetchRepository = (): Repository<AP> => ({
@@ -57,7 +57,7 @@ export const createAPFetchRepository = (): Repository<AP> => ({
   update: async (id: string, ap: APUpdate): Promise<APIResponse<AP>> => {
     try {
       const snakeCaseAp = transformToSnakeCase(ap);
-      const response = await fetch(`${API_ENDPOINTS.aps}/${id}`, {
+      const response = await fetch(`${API_ENDPOINTS.aps}/${id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ export const createAPFetchRepository = (): Repository<AP> => ({
 
   remove: async (id: string): Promise<APIResponse<void>> => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.aps}/${id}`, {
+      const response = await fetch(`${API_ENDPOINTS.aps}/${id}/`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
