@@ -80,7 +80,7 @@ export const createViewFetchRepository = ():ViewRepository => ({
   update: async (id: string, view: ViewUpdate): Promise<APIResponse<View>> => {
     try {
       const snakeCaseView = transformToSnakeCase(view);
-      const response = await fetch(`${API_ENDPOINTS.views}/${id}/`, {
+      const response = await fetch(`${API_ENDPOINTS.views}${id}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ export const createViewFetchRepository = ():ViewRepository => ({
 
   remove: async (id: string): Promise<APIResponse<void>> => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.views}/${id}/`, {
+      const response = await fetch(`${API_ENDPOINTS.views}${id}/`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

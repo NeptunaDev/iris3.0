@@ -57,7 +57,7 @@ export const createSiteFetchRepository = (): Repository<Site> => ({
   update: async (id: string, site: SiteUpdate): Promise<APIResponse<Site>> => {
     try {
       const snakeCaseSite = transformToSnakeCase(site);
-      const response = await fetch(`${API_ENDPOINTS.sites}/${id}/`, {
+      const response = await fetch(`${API_ENDPOINTS.sites}${id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ export const createSiteFetchRepository = (): Repository<Site> => ({
 
   remove: async (id: string): Promise<APIResponse<void>> => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.sites}/${id}/`, {
+      const response = await fetch(`${API_ENDPOINTS.sites}${id}/`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

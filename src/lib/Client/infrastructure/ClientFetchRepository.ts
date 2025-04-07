@@ -54,7 +54,7 @@ export const createClientFetchRepository = (): Repository<Client> => ({
   update: async (id: string, clientUpdate: ClientUpdate): Promise<APIResponse<Client>> => {
     try {
       const snakeCaseClient = transformToSnakeCase(clientUpdate);
-      const response = await fetch(`${API_ENDPOINTS.clients}/${id}/`, {
+      const response = await fetch(`${API_ENDPOINTS.clients}${id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ export const createClientFetchRepository = (): Repository<Client> => ({
 
   remove: async (id: string): Promise<APIResponse<void>> => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.clients}/${id}/`, {
+      const response = await fetch(`${API_ENDPOINTS.clients}${id}/`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
