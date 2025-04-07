@@ -13,12 +13,14 @@ import {
 } from "@mui/material";
 import { setCookie } from "cookies-next";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { MdOutlineVisibility, MdOutlineVisibilityOff } from "react-icons/md";
 import Imglogo from "../../../public/irisLogo.png";
 import { useTheme } from "@mui/material/styles";
+import { useMutation } from "@tanstack/react-query";
+import { createAuthFetchRepository } from "@/lib/Auth/infrastructure/AuthFetchRepository";
+import { LoginCredentials, AuthResponse } from "@/lib/Auth/domain/Auth";
 
 const styleImg = {
   width: "100%",
@@ -36,7 +38,22 @@ const SignInForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const authRepository = createAuthFetchRepository();
   const router = useRouter();
+  const { mutate } = useMutation<AuthResponse, Error, LoginCredentials>({
+    mutationFn: (credentials) => authRepository.login(credentials),
+    onSuccess: (data) => {
+      setCookie("token", data.data.token);
+      router.push("/AdminDashboard");
+    },
+    onError: (error) => {
+      setAlertBad({
+        showAlert: true,
+        message: "Correo o Contraseña Incorrectos",
+        severity: "error",
+      });
+    },
+  });
 
   const [alertBad, setAlertBad] = useState<AlertState>({
     showAlert: false,
@@ -66,39 +83,8 @@ const SignInForm: React.FC = () => {
       });
       return;
     }
-    const body = {
-      email: email,
-      password: password,
-    };
 
-    const JSONdata = JSON.stringify(body);
-    try {
-      const response = await fetch("api/auth/login", {
-        body: JSONdata,
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setCookie("token", data.data.token);
-        router.push("/AdminDashboard");
-      } else {
-        setAlertBad({
-          showAlert: true,
-          message: "Correo o Contraseña Incorrectos",
-          severity: "error",
-        });
-      }
-    } catch (error) {
-      setAlertBad({
-        showAlert: true,
-        message: "Error en la solicitud",
-        severity: "error",
-      });
-    }
+    mutate({ email, password });
   };
 
   return (
@@ -191,11 +177,6 @@ const SignInForm: React.FC = () => {
                         ),
                       }}
                     />
-                    {/* <Link href="/reset-password">
-                      <Typography sx={{ textDecoration: "none" }}>
-                        Olvidaste tu Contraseña?
-                      </Typography>
-                    </Link> */}
                     <Button
                       variant="contained"
                       color="primary"
@@ -206,18 +187,6 @@ const SignInForm: React.FC = () => {
                       Ingresar
                     </Button>
                   </Stack>
-                  {/* <Stack direction="row" spacing={2} justifyContent="center">
-                    <Typography>No tienes una Cuenta?</Typography>
-                    <Typography
-                      fontWeight={600}
-                      sx={{
-                        cursor: "pointer",
-                        userSelect: "none",
-                      }}
-                    >
-                      Registrate ahora!
-                    </Typography>
-                  </Stack> */}
                 </Stack>
               </Stack>
             </Stack>

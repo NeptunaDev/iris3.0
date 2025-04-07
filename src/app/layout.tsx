@@ -1,5 +1,4 @@
-import { ThemeProvider } from "@mui/material/styles";
-import theme from "./theme/theme";
+import Providers from "@/lib/Shared/infrastructure/Next/Providers";
 
 export default function RootLayout({
   children,
@@ -9,8 +8,10 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body style={{margin: 0}}>
-        <ThemeProvider theme={theme}>{children}</ThemeProvider>
+      <body style={{ margin: 0 }}>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
