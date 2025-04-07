@@ -1,10 +1,10 @@
 import { Site, SiteCreate, SiteUpdate } from "../domain/Site";
-import { URI_API } from "@/configuration/config";
 import { Repository } from "@/lib/Shared/domain/repository";
 import { APIResponse } from "@/lib/Shared/domain/response";
 import { buildQueryString } from "@/lib/Shared/infrastructure/FetchRepository/queryUtils";
 import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";
 import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/caseUtils";
+import { URI_API } from "@/configuration/config.client";
 
 const API_ENDPOINTS = {
   sites: `${URI_API}/site`,
@@ -12,9 +12,11 @@ const API_ENDPOINTS = {
 
 export const createSiteFetchRepository = (): Repository<Site> => ({
   find: async (criteria?: Partial<Site>): Promise<APIResponse<Site[]>> => {
+    console.log(`URI_API: ${URI_API}`);
     const snakeCaseCriteria = criteria ? transformToSnakeCase(criteria) : undefined;
     const queryString = buildQueryString(snakeCaseCriteria);
     const URI = queryString ? `${API_ENDPOINTS.sites}${queryString}` : API_ENDPOINTS.sites;
+    console.log(`URI: ${URI}`);
     try {
       const response = await fetch(URI, {
         method: 'GET',

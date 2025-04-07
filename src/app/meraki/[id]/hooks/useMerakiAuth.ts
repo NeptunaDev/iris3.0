@@ -1,34 +1,18 @@
-import { useState, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
 import { APIResponse } from "@/lib/Shared/domain/response";
-import { Site } from "@/lib/Site/domain/Site";
-import { AP } from "@/lib/AP/domain/AP";
-import { View, ViewCreate, ViewUpdate } from "@/lib/View/domain/View";
+import { View, ViewUpdate } from "@/lib/View/domain/View";
 import { ViewSendEmail, ViewVerifyCode } from "@/lib/View/domain/ViewRepository";
-import { createSiteFetchRepository } from "@/lib/Site/infrastructure/SiteFetchRepository";
-import { createSiteService } from "@/lib/Site/application/SiteUseCase";
-import { createAPFetchRepository } from "@/lib/AP/infrastructure/APFetchRepository";
-import { createAPService } from "@/lib/AP/application/APUseCase";
 import { createViewFetchRepository } from "@/lib/View/infrastructure/ViewFetchRepository";
 import { createViewService } from "@/lib/View/application/ViewService";
 import { FormData } from "../interfaces";
 import { inputs } from "../data";
+import { useCautivePortalConnection } from "@/hooks/useCautivePortalConnection";
 
 export const useMerakiAuth = (siteId: string) => {
-  // Services initialization
-  const siteRepository = createSiteFetchRepository();
-  const siteService = createSiteService(siteRepository);
-  const apRepository = createAPFetchRepository();
-  const apService = createAPService(apRepository);
-  const viewRepository = createViewFetchRepository();
-  const viewService = createViewService(viewRepository);
-
   // State management
-  const [site, setSite] = useState<Site>();
-  const [ap, setAp] = useState<AP>();
-  const [view, setView] = useState<View>();
   const [isLogged, setIsLogged] = useState(false);
   const [isError, setIsError] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -57,6 +41,13 @@ export const useMerakiAuth = (siteId: string) => {
     )
   );
 
+  // Use the generic hook for connection logic
+  const { view, isError: connectionError } = useCautivePortalConnection({
+    siteId,
+    clientMac: queries?.client_mac,
+    nodeMac: queries?.node_mac,
+  });
+
   // Event handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -75,25 +66,11 @@ export const useMerakiAuth = (siteId: string) => {
 
   const handleChangeOtp = (otp: string) => setOtp(otp);
 
-  // Queries and Mutations
-  const { data: siteResponse } = useQuery<APIResponse<Site[]>, Error>({
-    queryKey: ["Site", siteId],
-    queryFn: () => siteService.find({ siteId }),
-    enabled: !!siteId,
-  });
+  // View service initialization
+  const viewRepository = createViewFetchRepository();
+  const viewService = createViewService(viewRepository);
 
-  const { data: apResponse } = useQuery<APIResponse<AP[]>, Error>({
-    queryKey: ["AP", site?.id, queries?.node_mac],
-    queryFn: () => apService.find({ idSite: site?.id, mac: queries?.node_mac }),
-    enabled: !!site?.id && !!queries?.node_mac
-  });
-
-  const { mutate: createView } = useMutation<APIResponse<View>, Error, ViewCreate>({
-    mutationFn: (view: ViewCreate) => viewService.create(view),
-    onSuccess: (data) => setView(data.data),
-    onError: (error) => console.error("Error creating view:", error),
-  });
-
+  // Mutations
   const { mutate: sendEmail } = useMutation<APIResponse<void>, Error, ViewSendEmail>({
     mutationFn: (viewSendEmail: ViewSendEmail) => viewService.sendEmail(viewSendEmail),
     onSuccess: () => setShowVerificationForm(true),
@@ -128,28 +105,6 @@ export const useMerakiAuth = (siteId: string) => {
     },
   });
 
-  // Effects
-  useEffect(() => {
-    if (siteResponse?.data?.[0]) {
-      setSite(siteResponse.data[0]);
-    }
-  }, [siteResponse]);
-
-  useEffect(() => {
-    if (apResponse?.data?.[0]) {
-      setAp(apResponse.data[0]);
-    }
-  }, [apResponse]);
-
-  useEffect(() => {
-    if (queries?.client_mac && ap?.id) {
-      createView({
-        idAp: ap.id,
-        mac: queries.client_mac.replaceAll("%3A", ":").replaceAll("%2F", "/"),
-      });
-    }
-  }, [queries?.client_mac, ap?.id]);
-
   // Action handlers
   const handleSendEmail = () => {
     if (view?.id && formData["Email"]?.value) {
@@ -181,6 +136,6 @@ export const useMerakiAuth = (siteId: string) => {
     handleSendEmail,
     handleVerifyCode,
     isLogged,
-    isError,
+    isError: isError || connectionError,
   };
 }; 

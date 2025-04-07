@@ -1,6 +1,6 @@
 import { Repository } from "@/lib/Shared/domain/repository";
 import { Client, ClientCreate, ClientUpdate } from "../domain/Client";
-import { URI_API } from "@/configuration/config";
+import { URI_API } from "@/configuration/config.client";
 import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";
 import { APIResponse } from "@/lib/Shared/domain/response";
 import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/caseUtils";

@@ -1,6 +1,5 @@
 import { View, ViewCreate, ViewUpdate } from "../domain/View";
-import { URI_API } from "@/configuration/config";
-import { Repository } from "@/lib/Shared/domain/repository";
+import { URI_API } from "@/configuration/config.client";
 import { APIResponse } from "@/lib/Shared/domain/response";
 import { buildQueryString } from "@/lib/Shared/infrastructure/FetchRepository/queryUtils";
 import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";

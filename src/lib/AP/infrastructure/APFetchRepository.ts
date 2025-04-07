@@ -1,5 +1,5 @@
 import { AP, APCreate, APUpdate } from "../domain/AP";
-import { URI_API } from "@/configuration/config";
+import { URI_API } from "@/configuration/config.client";
 import { Repository } from "@/lib/Shared/domain/repository";
 import { APIResponse } from "@/lib/Shared/domain/response";
 import { buildQueryString } from "@/lib/Shared/infrastructure/FetchRepository/queryUtils";

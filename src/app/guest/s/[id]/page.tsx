@@ -9,44 +9,30 @@ import { AP, Params, Site, View } from "./interfaces";
 import { useFormData } from "./useFormData";
 import { connectUser, createView, fetchAP, fetchSite, updateView } from "./apiUtils";
 import { PortalCautive } from "./PortalCautiveView";
+import { useCautivePortalConnection } from "@/hooks/useCautivePortalConnection";
 
 const PortalCautiveView: React.FC<Params> = ({ params }) => {
-  const queries = getQueriesStr(useSearchParams().toString());
+  const queries = getQueriesStr(useSearchParams().toString().replaceAll("%3A", ":").replaceAll("%2F", "/"));
   const router = useRouter();
   const [isError, setIsError] = useState<boolean>(false);
-  const [site, setSite] = useState<Site>({} as Site);
-  const [ap, setAp] = useState<AP>({} as AP);
-  const [view, setView] = useState<View>({} as View);
   const [isLogged, setIsLogged] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-
   const { formData, handleChange, handleChangeSelect } = useFormData(inputs);
 
-  useEffect(() => {
-    fetchSite(params.id)
-      .then(setSite)
-      .catch(() => setIsError(true));
-  }, [params.id]);
-
-  useEffect(() => {
-    if (!site?._id || !queries?.ap) return;
-    fetchAP(site._id, queries.ap.replaceAll("%3A", ":"))
-      .then(setAp)
-      .catch(() => setIsError(true));
-  }, [queries?.ap, site._id]);
-
-  useEffect(() => {
-    if (!ap?._id || !queries?.id || view?._id) return;
-    createView(ap._id, queries.id.replaceAll("%3A", ":"))
-      .then(setView)
-      .catch(() => setIsError(true));
-  }, [queries?.id, view._id, ap._id]);
+  // Use the generic hook for connection logic
+  const {site, view, isError: connectionError } = useCautivePortalConnection({
+    siteId: params.id,
+    clientMac: queries.id,
+    nodeMac: queries.ap,
+  });
 
   const sendForm = async () => {
     if (!acceptedTerms) {
       alert('Por favor, acepte los términos y condiciones.');
       return;
     }
+
+    if (!site?.id || !view?.id) return;
 
     const hasErrors = Object.values(formData).some((field) => field.error !== "");
     if (hasErrors) {
@@ -56,13 +42,13 @@ const PortalCautiveView: React.FC<Params> = ({ params }) => {
 
     try {
       await connectUser({
-        id: queries.id.replaceAll("%3A", ":"),
-        ap: queries.ap.replaceAll("%3A", ":"),
+        id: queries.id,
+        ap: queries.ap,
         site: params.id,
-        idSite: site._id,
+        idSite: site?.id,
       });
 
-      await updateView(view._id, Object.values(formData));
+      await updateView(view.id, Object.values(formData));
 
       setIsLogged(true);
       router.push("https://www.google.com/?hl=es");

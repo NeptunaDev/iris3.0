@@ -1,5 +1,5 @@
 import { AuthRepository, LoginCredentials, AuthResponse } from "../domain/Auth";
-import { URI_API } from "@/configuration/config";
+import { URI_API } from "@/configuration/config.client";
 import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";
 
 const API_ENDPOINTS = {
