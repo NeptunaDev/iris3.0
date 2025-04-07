@@ -7,7 +7,7 @@ import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/F
 import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/caseUtils";
 
 const API_ENDPOINTS = {
-  aps: `${URI_API}/ap`,
+  aps: `${URI_API}/ap/`,
 } as const;
 
 export const createAPFetchRepository = (): Repository<AP> => ({

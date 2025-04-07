@@ -6,7 +6,7 @@ import { APIResponse } from "@/lib/Shared/domain/response";
 import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/caseUtils";
 
 const API_ENDPOINTS = {
-  clients: `${URI_API}/api/clients`,
+  clients: `${URI_API}/api/clients/`,
 } as const;
 
 export const createClientFetchRepository = (): Repository<Client> => ({

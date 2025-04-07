@@ -3,7 +3,7 @@ import { URI_API } from "@/configuration/config.client";
 import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";
 
 const API_ENDPOINTS = {
-  auth: `${URI_API}/auth`,
+  auth: `${URI_API}/auth/`,
 } as const;
 
 export const createAuthFetchRepository = (): AuthRepository => ({

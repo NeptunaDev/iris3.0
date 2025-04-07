@@ -7,7 +7,7 @@ import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/
 import { ViewRepository, ViewSendEmail, ViewVerifyCode } from "../domain/ViewRepository";
 
 const API_ENDPOINTS = {
-  views: `${URI_API}/view`,
+  views: `${URI_API}/view/`,
 } as const;
 
 export const createViewFetchRepository = ():ViewRepository => ({

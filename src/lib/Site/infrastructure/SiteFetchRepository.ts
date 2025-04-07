@@ -7,7 +7,7 @@ import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/
 import { URI_API } from "@/configuration/config.client";
 
 const API_ENDPOINTS = {
-  sites: `${URI_API}/site`,
+  sites: `${URI_API}/site/`,
 } as const;
 
 export const createSiteFetchRepository = (): Repository<Site> => ({
