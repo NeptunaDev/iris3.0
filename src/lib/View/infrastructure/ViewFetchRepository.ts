@@ -4,48 +4,34 @@ import { APIResponse } from "@/lib/Shared/domain/response";
 import { buildQueryString } from "@/lib/Shared/infrastructure/FetchRepository/queryUtils";
 import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";
 import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/caseUtils";
-import { ViewRepository, ViewSendEmail, ViewVerifyCode } from "../domain/ViewRepository";
+import { ViewRepository } from "../domain/ViewRepository";
+import { ViewSendEmail, ViewVerifyCode } from "../domain/ViewSpecification";
 
 const API_ENDPOINTS = {
   views: `${URI_API}view/`,
 } as const;
 
-export const createViewFetchRepository = ():ViewRepository => ({
-  verifyCode: async (viewVerifyCode: ViewVerifyCode): Promise<APIResponse<void>> => {
-    try {
-      const response = await fetch(`${API_ENDPOINTS.views}verify-code/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          code: viewVerifyCode.code,
-          view_id: viewVerifyCode.viewId,
-        }),
-      });
-      const apiResponse = await handleApiResponse<any>(response);
-      return {
-        ...apiResponse,
-        data: transformToCamelCase(apiResponse.data)
-      };
-    } catch (error) {
-      if (error instanceof Error) throw error;
-      throw createApiError('Failed to verify code');
-    }
-  },
-
-  find: async (criteria?: Partial<View>): Promise<APIResponse<View[]>> => {
+export const createViewFetchRepository = (token?: string): ViewRepository => ({
+  find: async (criteria?: Partial<View>): Promise<APIResponse<View[] | number>> => {
     const snakeCaseCriteria = criteria ? transformToSnakeCase(criteria) : undefined;
     const queryString = buildQueryString(snakeCaseCriteria);
     const URI = queryString ? `${API_ENDPOINTS.views}${queryString}` : API_ENDPOINTS.views;
+
     try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(URI, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
-      const apiResponse = await handleApiResponse<any[]>(response);
+
+      const apiResponse = await handleApiResponse<any>(response);
       return {
         ...apiResponse,
         data: transformToCamelCase(apiResponse.data)
@@ -59,13 +45,20 @@ export const createViewFetchRepository = ():ViewRepository => ({
   create: async (view: ViewCreate): Promise<APIResponse<View>> => {
     try {
       const snakeCaseView = transformToSnakeCase(view);
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(API_ENDPOINTS.views, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(snakeCaseView),
       });
+
       const apiResponse = await handleApiResponse<any>(response);
       return {
         ...apiResponse,
@@ -74,6 +67,52 @@ export const createViewFetchRepository = ():ViewRepository => ({
     } catch (error) {
       if (error instanceof Error) throw error;
       throw createApiError('Failed to create view');
+    }
+  },
+
+  sendEmail: async (viewSendEmail: ViewSendEmail): Promise<APIResponse<void>> => {
+    try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_ENDPOINTS.views}/send-email`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(transformToSnakeCase(viewSendEmail)),
+      });
+
+      return handleApiResponse<void>(response);
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw createApiError('Failed to send email');
+    }
+  },
+
+  verifyCode: async (viewVerifyCode: ViewVerifyCode): Promise<APIResponse<void>> => {
+    try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_ENDPOINTS.views}/verify-code`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(transformToSnakeCase(viewVerifyCode)),
+      });
+
+      return handleApiResponse<void>(response);
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw createApiError('Failed to verify code');
     }
   },
 
@@ -110,26 +149,6 @@ export const createViewFetchRepository = ():ViewRepository => ({
     } catch (error) {
       if (error instanceof Error) throw error;
       throw createApiError('Failed to delete view');
-    }
-  },
-
-  sendEmail: async (viewSendEmail: ViewSendEmail): Promise<APIResponse<void>> => {
-    try {
-      const response = await fetch(`${API_ENDPOINTS.views}send-email/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          view_id: viewSendEmail.viewId,
-          template: viewSendEmail.template,
-          email: viewSendEmail.email,
-        }),
-      });
-      return handleApiResponse<void>(response);
-    } catch (error) {
-      if (error instanceof Error) throw error;
-      throw createApiError('Failed to send email');
     }
   }
 }); 

@@ -11,48 +11,32 @@ import {
 } from "@mui/material";
 import { FiMonitor } from "react-icons/fi";
 import { PortalViewCardProps } from "../interfaces";
+import { useViewRepository } from "@/lib/View/infrastructure/hooks/useViewRepository";
+import { createViewService } from "@/lib/View/application/ViewService";
+import { useQuery } from "@tanstack/react-query";
 
 const UniqueDevicesCard: React.FC<PortalViewCardProps> = ({ dateRange }) => {
-  const [uniqueDevices, setUniqueDevices] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const token = getCookie("token") as string;
+  const repository = useViewRepository();
+  const service = createViewService(repository);
+  const [uniqueDevices, setUniqueDevices] = useState<number>(0);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["portal-unique-devices", dateRange.endDate, dateRange.startDate],
+    queryFn: () => service.find({
+      ...(dateRange.endDate && { createdAtEndDate: dateRange.endDate.format('MM/DD/YYYY') }),
+      ...(dateRange.startDate && { createdAtStartDate: dateRange.startDate.format('MM/DD/YYYY') }),
+      onlyCount: true,
+      isLogin: true,
+      distinct: "mac",
+    })
+  })
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      if (!dateRange.startDate || !dateRange.endDate) {
-        setError("Please select both start and end dates");
-        setIsLoading(false);
-        return;
-      }
-
-      const startDateStr = dateRange.startDate.format('MM/DD/YYYY');
-      const endDateStr = dateRange.endDate.format('MM/DD/YYYY');
-        try {
-          const response = await fetch(`/api/view/unique-devices?startDate=${startDateStr}&endDate=${endDateStr}`, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          if (!response.ok) {
-            throw new Error(`Network response was not ok: ${response.status}`);
-          }
-          const result = await response.json();
-          setUniqueDevices(result.data);
-        } catch (error) {
-          console.error("No se pudo consultar la vista de dispositivos únicos", error);
-          setError("Failed to fetch unique devices data");
-        } finally {
-          setIsLoading(false);
-        }
-    };
-
-    fetchData();
-  }, [dateRange, token]);
+    if (!data || !data.data || typeof data.data !== 'number') {
+      return;
+    }
+    setUniqueDevices(data.data);
+  }, [data]);
 
   return (
     <Card sx={{ maxWidth: 345, borderRadius: "16px", boxShadow: 3 }}>
@@ -72,7 +56,7 @@ const UniqueDevicesCard: React.FC<PortalViewCardProps> = ({ dateRange }) => {
         {isLoading && <CircularProgress />}
         {error && (
           <Typography color="error">
-            Error: {error}
+            Error: {error.message}
           </Typography>
         )}
         {!isLoading && !error && uniqueDevices && (

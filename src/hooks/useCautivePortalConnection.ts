@@ -49,16 +49,22 @@ export const useCautivePortalConnection = ({
   // Queries
   const { data: siteResponse, isLoading: isLoadingSite } = useQuery<APIResponse<Site[]>, Error>({
     queryKey: ["Site", siteId],
-    queryFn: () => siteService.find({ siteId }),
+    queryFn: async () => {
+      const response = await siteService.find({ siteId });
+      return response as APIResponse<Site[]>;
+    },
     enabled: !!siteId,
   });
 
   const { data: apResponse, isLoading: isLoadingAP } = useQuery<APIResponse<AP[]>, Error>({
     queryKey: ["AP", site?.id, nodeMac],
-    queryFn: () => apService.find({ 
-      idSite: site?.id, 
-      mac: nodeMac 
-    }),
+    queryFn: async () => {
+      const response = await apService.find({ 
+        idSite: site?.id, 
+        mac: nodeMac 
+      });
+      return response as APIResponse<AP[]>;
+    },
     enabled: !!site?.id && !!nodeMac
   });
 

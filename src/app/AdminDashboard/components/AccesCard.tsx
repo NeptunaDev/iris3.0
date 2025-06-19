@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, IconButton, Typography, CircularProgress
 import { AiOutlineLogin } from "react-icons/ai";
 import { getCookie } from "cookies-next";
 import { PortalViewCardProps, PortalViewData } from "../interfaces";
+import { useQuery } from "@tanstack/react-query";
+import { useViewRepository } from "@/lib/View/infrastructure/hooks/useViewRepository";
+import { createViewService } from "@/lib/View/application/ViewService";
 
 interface AccessData {
   length: number;
@@ -15,46 +18,26 @@ interface DateRange {
 }
 
 const AccesCard: React.FC<PortalViewCardProps> = ({ dateRange }) => {
-  const [accessGrate, setAccessGrate] = useState<PortalViewData | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const token = getCookie("token") as string;
+  const repository = useViewRepository();
+  const service = createViewService(repository);
+  const [accessGrate, setAccessGrate] = useState<number>(0);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["portal-access", dateRange.endDate, dateRange.startDate],
+    queryFn: () => service.find({
+      ...(dateRange.endDate && { createdAtEndDate: dateRange.endDate.format('MM/DD/YYYY') }),
+      ...(dateRange.startDate && { createdAtStartDate: dateRange.startDate.format('MM/DD/YYYY') }),
+      onlyCount: true,
+      isLogin: true,
+    })
+  })
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      if (!dateRange.startDate || !dateRange.endDate) {
-        setError("Please select both start and end dates");
-        setIsLoading(false);
-        return;
-      }
-
-      const startDateStr = dateRange.startDate.format('MM/DD/YYYY');
-      const endDateStr = dateRange.endDate.format('MM/DD/YYYY');
-        try {
-          const response = await fetch(`/api/view?isLogin=true&startDate=${startDateStr}&endDate=${endDateStr}`, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          if (!response.ok) {
-            throw new Error(`Network response was not ok: ${response.status}`);
-          }
-          const result = await response.json();
-          setAccessGrate(result.data);
-        } catch (error) {
-          console.error("No se pudo consultar la vista", error);
-          setError("Failed to fetch access data");
-        } finally {
-          setIsLoading(false);
-        }
-    };
-
-    fetchData();
-  }, [dateRange, token]);
+    if (!data || !data.data || typeof data.data !== 'number') {
+      return;
+    }
+    setAccessGrate(data.data);
+  }, [data]);
 
   return (
     <Card sx={{ maxWidth: 345, borderRadius: '16px', boxShadow: 3 }}>
@@ -74,12 +57,12 @@ const AccesCard: React.FC<PortalViewCardProps> = ({ dateRange }) => {
         {isLoading && <CircularProgress />}
         {error && (
           <Typography color="error">
-            Error: {error}
+            Error: {error.message}
           </Typography>
         )}
         {!isLoading && !error && accessGrate && (
           <Typography sx={{ fontWeight: "bold", fontSize: "1.5rem" }}>
-            {accessGrate.length}
+            {accessGrate}
           </Typography>
         )}
       </CardContent>
