@@ -4,12 +4,12 @@ import { useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
 import { APIResponse } from "@/lib/Shared/domain/response";
 import { View, ViewUpdate } from "@/lib/View/domain/View";
-import { ViewSendEmail, ViewVerifyCode } from "@/lib/View/domain/ViewRepository";
 import { createViewFetchRepository } from "@/lib/View/infrastructure/ViewFetchRepository";
 import { createViewService } from "@/lib/View/application/ViewService";
 import { FormData } from "../interfaces";
 import { inputs } from "../data";
 import { useCautivePortalConnection } from "@/hooks/useCautivePortalConnection";
+import { ViewSendEmail, ViewVerifyCode } from "@/lib/View/domain/ViewSpecification";
 
 export const useMerakiAuth = (siteId: string) => {
   // State management
