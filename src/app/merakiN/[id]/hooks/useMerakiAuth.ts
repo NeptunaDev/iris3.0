@@ -1,62 +1,51 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
-import { APIResponse } from "@/lib/Shared/domain/response";
-import { View, ViewUpdate, FormFieldType } from "@/lib/View/domain/View";
-import { createViewFetchRepository } from "@/lib/View/infrastructure/ViewFetchRepository";
-import { createViewService } from "@/lib/View/application/ViewService";
-import { FormData } from "../interfaces";
+import { FormData, AP, Site, View } from "../interfaces";
 import { inputs } from "../data";
-import { useCautivePortalConnection } from "@/hooks/useCautivePortalConnection";
-import { ViewSendEmail, ViewVerifyCode } from "@/lib/View/domain/ViewSpecification";
-
-const mapTypeToFormFieldType = (type: string): FormFieldType => {
-  switch (type) {
-    case 'text': return 'text';
-    case 'email': return 'email';
-    case 'password': return 'password';
-    case 'number': return 'number';
-    case 'tel': return 'tel';
-    case 'url': return 'url';
-    case 'search': return 'search';
-    case 'date': return 'date';
-    case 'time': return 'time';
-    case 'datetime-local': return 'datetime-local';
-    case 'month': return 'month';
-    case 'week': return 'week';
-    case 'color': return 'color';
-    case 'range': return 'range';
-    case 'file': return 'file';
-    case 'checkbox': return 'checkbox';
-    case 'radio': return 'radio';
-    case 'submit': return 'submit';
-    case 'reset': return 'reset';
-    case 'button': return 'button';
-    case 'image': return 'image';
-    case 'hidden': return 'hidden';
-    case 'textarea': return 'textarea';
-    case 'select': return 'select';
-    default: return 'text';
-  }
-};
 
 export const useMerakiAuth = (siteId: string) => {
-  // State management
+  const searchParams = useSearchParams().toString();
+  
+  // Limpiar caracteres URL-encoded de todos los parámetros
+  const cleanParams = searchParams.replaceAll("%3A", ":").replaceAll("%2F", "/");
+  const queries = getQueriesStr(cleanParams);
+  
+  // Extraer y limpiar todos los parámetros necesarios de Meraki
+  const { 
+    base_grant_url, 
+    user_continue_url,
+    node_mac,
+    client_mac,
+    client_ip,
+    gateway_id,
+    node_id
+  } = queries;
+
+  // Aplicar limpieza adicional a parámetros específicos si es necesario
+  const cleanBaseGrantUrl = base_grant_url?.replaceAll("%3A", ":").replaceAll("%2F", "/");
+  const cleanUserContinueUrl = user_continue_url?.replaceAll("%3A", ":").replaceAll("%2F", "/");
+  const cleanNodeMac = node_mac?.replaceAll("%3A", ":").replaceAll("%2F", "/");
+  const cleanClientMac = client_mac?.replaceAll("%3A", ":").replaceAll("%2F", "/");
+
+  // Debug: Log de parámetros recibidos
+  console.log('Parámetros de Meraki recibidos:', {
+    raw_params: searchParams,
+    clean_params: cleanParams,
+    base_grant_url: cleanBaseGrantUrl,
+    user_continue_url: cleanUserContinueUrl,
+    node_mac: cleanNodeMac,
+    client_mac: cleanClientMac,
+    client_ip,
+    gateway_id,
+    node_id
+  });
+
   const [isLogged, setIsLogged] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [showVerificationForm, setShowVerificationForm] = useState(false);
-  const [otp, setOtp] = useState("");
-
-  // URL and query parameters
-  const queries = getQueriesStr(
-    useSearchParams().toString().replaceAll("%3A", ":").replaceAll("%2F", "/")
-  );
-  const { base_grant_url } = queries;
-  const url = base_grant_url + "?continue_url=" + "https://www.google.com/?hl=es";
-
-  // Form data initialization
+  const [ap, setAp] = useState<AP>({} as AP);
+  const [isError, setIsError] = useState<boolean>(false);
+  const [view, setView] = useState<View>({} as View);
+  const [site, setSite] = useState<Site>({} as Site);
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce(
       (acc, input) => ({
@@ -72,28 +61,18 @@ export const useMerakiAuth = (siteId: string) => {
       {}
     )
   );
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [authStep, setAuthStep] = useState<'form' | 'authenticating' | 'complete'>('form');
 
-  // Use the generic hook for connection logic
-  const { view, isError: connectionError, isLoading } = useCautivePortalConnection({
-    siteId,
-    clientMac: queries?.client_mac,
-    nodeMac: queries?.node_mac,
-  });
-
-  // Event handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (name.startsWith("Código")) {
-      setOtp((prevOtp) => prevOtp + value);
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: {
-          ...prev[name],
-          value,
-        },
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: {
+        ...prev[name],
+        value,
+      },
+    }));
   };
 
   const handleChangeSelect = (name: string, value: string) => {
@@ -106,118 +85,164 @@ export const useMerakiAuth = (siteId: string) => {
     }));
   };
 
-  // View service initialization
-  const viewRepository = createViewFetchRepository();
-  const viewService = createViewService(viewRepository);
-
-  // Mutations
-  const { mutate: sendEmail } = useMutation<APIResponse<void>, Error, ViewSendEmail>({
-    mutationFn: (viewSendEmail: ViewSendEmail) => viewService.sendEmail(viewSendEmail),
-    onSuccess: () => setShowVerificationForm(true),
-    onError: (error) => {
-      console.error("Error sending email:", error);
+  // Validar que tenemos los parámetros necesarios de Meraki
+  useEffect(() => {
+    console.log('Validando parámetros de Meraki...');
+    
+    if (!cleanBaseGrantUrl || !cleanClientMac) {
+      console.error('Faltan parámetros críticos de Meraki:', {
+        base_grant_url: !!cleanBaseGrantUrl,
+        client_mac: !!cleanClientMac,
+        node_mac: !!cleanNodeMac,
+        user_continue_url: !!cleanUserContinueUrl
+      });
       setIsError(true);
-    },
-  });
+    } else {
+      console.log('✅ Parámetros de Meraki válidos');
+    }
+  }, [cleanBaseGrantUrl, cleanNodeMac, cleanClientMac, cleanUserContinueUrl]);
 
-  const { mutate: updateView } = useMutation<APIResponse<View>, Error, ViewUpdate>({
-    mutationFn: (viewUpdate: ViewUpdate) => {
-      if (!view?.id) throw new Error("View ID is undefined");
-      return viewService.update(view.id, viewUpdate);
-    },
-    onSuccess: () => {
-      setIsLogged(true);
-      window.location.href = url;
-    },
-    onError: (error) => {
-      console.error("Error updating view:", error);
-      setIsError(true);
-    },
-  });
+  // Fetch site data
+  useEffect(() => {
+    async function fetchUbiquitiData() {
+      const endpoint = `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/site?siteId=${siteId}`;
+      try {
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-  const { mutate: verifyCode } = useMutation<APIResponse<void>, Error, ViewVerifyCode>({
-    mutationFn: (viewVerifyCode: ViewVerifyCode) => viewService.verifyCode(viewVerifyCode),
-    onSuccess: () => {
-      if (!view) {
+        const data = await response.json();
+        setSite(data.data);
+        return data;
+      } catch (error) {
         setIsError(true);
-        return;
+        console.error("Error fetching data:", error);
       }
-      updateView({
-        isLogin: true,
-        info: [
+    }
+
+    fetchUbiquitiData();
+  }, [siteId]);
+
+  // Fetch AP data
+  useEffect(() => {
+    if (!site?._id) return;
+    if (!cleanNodeMac) {
+      setIsError(true);
+      return;
+    }
+
+    const getData = async () => {
+      try {
+        const response = await fetch(
+          `https://api-iris-0yax.onrender.com/api/v1/ubiquiti/ap?idSite=${site._id}&mac=${cleanNodeMac}`,
           {
-            label: "email",
-            value: formData["Email"]?.value,
-            type: "email"
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setAp(data.data);
+      } catch (error) {
+        setIsError(true);
+        console.error("Error fetching data:", error);
+      }
+    }
+    getData();
+  }, [cleanNodeMac, site._id]);
+
+  // Create view
+  useEffect(() => {
+    if (!ap?._id) return;
+    if (!cleanClientMac) {
+      setIsError(true);
+      return;
+    }
+    if (view?._id) {
+      return;
+    }
+
+    const createView = async () => {
+      try {
+        const response = await fetch(`/api/view`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-        ],
-      });
-    },
-    onError: (error) => {
-      console.error("Error verifying code:", error);
-      setIsError(true);
-    },
-  });
+          body: JSON.stringify({
+            idAp: ap?._id,
+            mac: cleanClientMac,
+          }),
+        });
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        setView(() => ({ ...data.data }));
+      } catch (error) {
+        setIsError(true);
+        console.error("Error fetching data:", error);
+      }
+    };
 
-  // Action handlers
-  const handleSendEmail = () => {
-    if (!view?.id) {
-      setIsError(true);
-      return;
-    }
-    if (formData["Email"]?.value) {
-      sendEmail({
-        viewId: view.id,
-        template: "code_velez",
-        email: formData["Email"].value,
-      });
-    }
-  };
-
-  const handleVerifyCode = () => {
-    if (!view?.id) {
-      setIsError(true);
-      return;
-    }
-    if (otp) {
-      verifyCode({
-        code: otp,
-        viewId: view.id,
-      });
-    }
-  };
+    createView();
+  }, [cleanClientMac, view._id, ap._id]);
 
   const sendForm = async () => {
-    if (!view?.id) {
-      setIsError(true);
-      console.error("Error: View ID is undefined");
-      return;
-    }
-
     if (!acceptedTerms) {
-      alert('Por favor, acepte los términos y condiciones.');
+      alert("Por favor, acepte los términos y condiciones.");
       return;
     }
 
-    const hasErrors = Object.values(formData).some((field) => field.error !== "");
+    const hasErrors = Object.values(formData).some(
+      (field) => field.error !== ""
+    );
     if (hasErrors) {
-      alert('Por favor, corrija los errores en el formulario antes de enviar.');
+      alert("Por favor, corrija los errores en el formulario antes de enviar.");
+      return;
+    }
+
+    // Validación principal: parámetros de Meraki (usando versiones limpias)
+    if (!cleanBaseGrantUrl) {
+      alert("Error: No se encontró la URL de autenticación de Meraki.");
+      console.error('base_grant_url faltante:', { cleanBaseGrantUrl, queries });
+      return;
+    }
+
+    if (!cleanClientMac) {
+      alert("Error: No se encontró la MAC del cliente.");
+      console.error('client_mac faltante:', { cleanClientMac, queries });
       return;
     }
 
     try {
-      updateView({
-        isLogin: true,
-        info: Object.values(formData).map(({ label, value, type }) => ({
-          label,
-          value,
-          type: mapTypeToFormFieldType(type)
-        })),
+      setAuthStep('authenticating');
+      
+      // Construir la URL de grant para EXCAP - concatenación directa sin encodeURIComponent
+      const continueUrl = cleanUserContinueUrl || "https://www.netmask.co/";
+      const grantUrl = `${cleanBaseGrantUrl}?continue_url=${continueUrl}`;
+      
+      console.log('🚀 Datos del formulario capturados:', formData);
+      console.log('🚀 Autenticando con Meraki:', {
+        base_grant_url: cleanBaseGrantUrl,
+        continueUrl,
+        finalGrantUrl: grantUrl,
+        client_mac: cleanClientMac,
+        node_mac: cleanNodeMac
       });
+      
+      // Redirigir a Meraki para completar la autenticación
+      window.location.href = grantUrl;
+      
     } catch (error) {
-      console.error("Error sending form:", error);
+      console.error('Error en autenticación:', error);
       setIsError(true);
-      alert('Hubo un error al enviar el formulario. Por favor, intente de nuevo.');
+      setAuthStep('form');
+      alert('Error al procesar la autenticación. Por favor, intente de nuevo.');
     }
   };
 
@@ -227,14 +252,20 @@ export const useMerakiAuth = (siteId: string) => {
     handleChangeSelect,
     acceptedTerms,
     setAcceptedTerms,
-    showVerificationForm,
-    otp,
-    handleChangeOtp: setOtp,
-    handleSendEmail,
-    handleVerifyCode,
     sendForm,
     isLogged,
-    isError: isError || connectionError,
-    isLoading,
+    isError,
+    isLoading: authStep === 'authenticating',
+    authStep,
+    merakiParams: {
+      base_grant_url: cleanBaseGrantUrl,
+      user_continue_url: cleanUserContinueUrl,
+      node_mac: cleanNodeMac,
+      client_mac: cleanClientMac,
+      client_ip,
+      gateway_id,
+      node_id,
+      hasValidParams: !!(cleanBaseGrantUrl && cleanClientMac)
+    }
   };
-}; 
+};

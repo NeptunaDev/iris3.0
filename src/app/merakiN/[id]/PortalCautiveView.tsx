@@ -28,6 +28,7 @@ interface PortalCautiveProps {
 export const PortalCautive: React.FC<PortalCautiveProps> = ({
   formData,
   handleChange,
+  handleChangeSelect,
   acceptedTerms,
   setAcceptedTerms,
   sendForm,
@@ -143,7 +144,7 @@ export const PortalCautive: React.FC<PortalCautiveProps> = ({
                     },
                   }}
                 >
-                  Conectar a la Red
+                  Conectarme!
                 </Button>
               </Stack>
             </CardContent>

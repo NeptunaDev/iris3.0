@@ -32,9 +32,6 @@ export const useCautivePortalConnection = ({
   clientMac,
   nodeMac,
 }: UseCautivePortalConnectionProps): UseCautivePortalConnectionResult => {
-  // Log initial parameters
-  console.log("🚀 useCautivePortalConnection called with:", { siteId, clientMac, nodeMac });
-
   // Services initialization
   const siteRepository = createSiteFetchRepository();
   const siteService = createSiteService(siteRepository);
@@ -53,9 +50,7 @@ export const useCautivePortalConnection = ({
   const { data: siteResponse, isLoading: isLoadingSite } = useQuery<APIResponse<Site[]>, Error>({
     queryKey: ["Site", siteId],
     queryFn: async () => {
-      console.log("🔍 Searching for site:", siteId);
       const response = await siteService.find({ siteId });
-      console.log("📡 Site response:", response);
       return response as APIResponse<Site[]>;
     },
     enabled: !!siteId,
@@ -64,12 +59,10 @@ export const useCautivePortalConnection = ({
   const { data: apResponse, isLoading: isLoadingAP } = useQuery<APIResponse<AP[]>, Error>({
     queryKey: ["AP", site?.id, nodeMac],
     queryFn: async () => {
-      console.log("🔍 Searching for AP:", { idSite: site?.id, mac: nodeMac });
       const response = await apService.find({ 
         idSite: site?.id, 
         mac: nodeMac 
       });
-      console.log("📡 AP response:", response);
       return response as APIResponse<AP[]>;
     },
     enabled: !!site?.id && !!nodeMac
@@ -77,12 +70,9 @@ export const useCautivePortalConnection = ({
 
   const { mutate: createView, isPending: isCreatingView } = useMutation<APIResponse<View>, Error, ViewCreate>({
     mutationFn: (view: ViewCreate) => viewService.create(view),
-    onSuccess: (data) => {
-      console.log("✅ View created successfully:", data.data);
-      setView(data.data);
-    },
+    onSuccess: (data) => setView(data.data),
     onError: (error) => {
-      console.error("❌ Error creating view:", error);
+      console.error("Error creating view:", error);
       setIsError(true);
     },
   });
@@ -91,43 +81,24 @@ export const useCautivePortalConnection = ({
   useEffect(() => {
     if (siteResponse?.data?.[0]) {
       setSite(siteResponse.data[0]);
-      console.log("✅ Site loaded:", siteResponse.data[0].id);
     }
   }, [siteResponse]);
 
   useEffect(() => {
     if (apResponse?.data?.[0]) {
       setAp(apResponse.data[0]);
-      console.log("✅ AP loaded:", apResponse.data[0].id);
-    } else if (apResponse && apResponse.data && apResponse.data.length === 0) {
-      console.log("❌ AP not found for:", { siteId: site?.id, nodeMac });
     }
-  }, [apResponse, site?.id, nodeMac]);
+  }, [apResponse]);
 
   useEffect(() => {
     const mac = clientMac;
     if (mac && ap?.id) {
-      console.log("🔄 Creating view with:", { idAp: ap.id, mac: clientMac });
       createView({
         idAp: ap.id,
         mac: mac,
       });
     }
   }, [clientMac, ap?.id]);
-
-  // Log final state
-  useEffect(() => {
-    console.log("📊 Final state:", {
-      siteId,
-      clientMac,
-      nodeMac,
-      site: site?.id,
-      ap: ap?.id,
-      view: view?.id,
-      isLoading: isLoadingSite || isLoadingAP || isCreatingView,
-      isError
-    });
-  }, [siteId, clientMac, nodeMac, site?.id, ap?.id, view?.id, isLoadingSite, isLoadingAP, isCreatingView, isError]);
 
   return {
     site,
