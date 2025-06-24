@@ -24,7 +24,7 @@ export const inputs = [
     errorMessage: "El teléfono es requerido",
   },
   {
-    label: "Cargo",
+    label: "Empresa",
     type: "text",
     error: "",
     errorMessage: "El cargo es requerido",
