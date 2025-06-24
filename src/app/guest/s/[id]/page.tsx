@@ -1,18 +1,25 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
 
 import { inputs } from "./data";
 
-import { AP, Params, Site, View } from "./interfaces";
+import { Params} from "./interfaces";
 import { useFormData } from "./useFormData";
-import { connectUser, createView, fetchAP, fetchSite, updateView } from "./apiUtils";
+import { connectUser, updateView } from "./apiUtils";
 import { PortalCautive } from "./PortalCautiveView";
 import { useCautivePortalConnection } from "@/hooks/useCautivePortalConnection";
 
 const PortalCautiveView: React.FC<Params> = ({ params }) => {
   const queries = getQueriesStr(useSearchParams().toString().replaceAll("%3A", ":").replaceAll("%2F", "/"));
+  
+  // Debug logs
+  console.log("🔍 Guest - Raw search params:", useSearchParams().toString());
+  console.log("🔍 Guest - Processed queries:", queries);
+  console.log("🔍 Guest - id:", queries.id);
+  console.log("🔍 Guest - ap:", queries.ap);
+  
   const router = useRouter();
   const [isError, setIsError] = useState<boolean>(false);
   const [isLogged, setIsLogged] = useState(false);
