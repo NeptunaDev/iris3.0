@@ -192,6 +192,8 @@ export const useMerakiAuth = (siteId: string) => {
     createView();
   }, [cleanClientMac, view._id, ap._id]);
 
+
+
   const sendForm = async () => {
     if (!acceptedTerms) {
       alert("Por favor, acepte los términos y condiciones.");
