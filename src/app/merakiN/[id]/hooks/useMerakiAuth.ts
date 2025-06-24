@@ -28,19 +28,6 @@ export const useMerakiAuth = (siteId: string) => {
   const cleanNodeMac = node_mac?.replaceAll("%3A", ":").replaceAll("%2F", "/");
   const cleanClientMac = client_mac?.replaceAll("%3A", ":").replaceAll("%2F", "/");
 
-  // Debug: Log de parámetros recibidos
-  console.log('Parámetros de Meraki recibidos:', {
-    raw_params: searchParams,
-    clean_params: cleanParams,
-    base_grant_url: cleanBaseGrantUrl,
-    user_continue_url: cleanUserContinueUrl,
-    node_mac: cleanNodeMac,
-    client_mac: cleanClientMac,
-    client_ip,
-    gateway_id,
-    node_id
-  });
-
   const [isLogged, setIsLogged] = useState(false);
   const [ap, setAp] = useState<AP>({} as AP);
   const [isError, setIsError] = useState<boolean>(false);
@@ -227,15 +214,6 @@ export const useMerakiAuth = (siteId: string) => {
       // Construir la URL de grant para EXCAP - concatenación directa sin encodeURIComponent
       const continueUrl = cleanUserContinueUrl || "https://www.netmask.co/";
       const grantUrl = `${cleanBaseGrantUrl}?continue_url=${continueUrl}`;
-      
-      console.log('🚀 Datos del formulario capturados:', formData);
-      console.log('🚀 Autenticando con Meraki:', {
-        base_grant_url: cleanBaseGrantUrl,
-        continueUrl,
-        finalGrantUrl: grantUrl,
-        client_mac: cleanClientMac,
-        node_mac: cleanNodeMac
-      });
       
       // Redirigir a Meraki para completar la autenticación
       window.location.href = grantUrl;
