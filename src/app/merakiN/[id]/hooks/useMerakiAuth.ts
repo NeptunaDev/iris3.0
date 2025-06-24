@@ -6,29 +6,37 @@ import { inputs } from "../data";
 
 export const useMerakiAuth = (siteId: string) => {
   const searchParams = useSearchParams().toString();
-  
+
   // Limpiar caracteres URL-encoded de todos los parámetros
-  const cleanParams = searchParams.replaceAll("%3A", ":").replaceAll("%2F", "/");
+  const cleanParams = searchParams
+    .replaceAll("%3A", ":")
+    .replaceAll("%2F", "/");
   const queries = getQueriesStr(cleanParams);
-  
+
   // Extraer y limpiar todos los parámetros necesarios de Meraki
-  const { 
-    base_grant_url, 
+  const {
+    base_grant_url,
     user_continue_url,
     node_mac,
     client_mac,
     client_ip,
     gateway_id,
-    node_id
+    node_id,
   } = queries;
 
   // Aplicar limpieza adicional a parámetros específicos si es necesario
-  const cleanBaseGrantUrl = base_grant_url?.replaceAll("%3A", ":").replaceAll("%2F", "/");
-  const cleanUserContinueUrl = user_continue_url?.replaceAll("%3A", ":").replaceAll("%2F", "/");
+  const cleanBaseGrantUrl = base_grant_url
+    ?.replaceAll("%3A", ":")
+    .replaceAll("%2F", "/");
+  const cleanUserContinueUrl = user_continue_url
+    ?.replaceAll("%3A", ":")
+    .replaceAll("%2F", "/");
   const cleanNodeMac = node_mac?.replaceAll("%3A", ":").replaceAll("%2F", "/");
-  const cleanClientMac = client_mac?.replaceAll("%3A", ":").replaceAll("%2F", "/");
+  const cleanClientMac = client_mac
+    ?.replaceAll("%3A", ":")
+    .replaceAll("%2F", "/");
 
-  const [isLogged, setIsLogged] = useState(false);
+  const [isLogin, setIsLogin] = useState(false);
   const [ap, setAp] = useState<AP>({} as AP);
   const [isError, setIsError] = useState<boolean>(false);
   const [view, setView] = useState<View>({} as View);
@@ -49,7 +57,9 @@ export const useMerakiAuth = (siteId: string) => {
     )
   );
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [authStep, setAuthStep] = useState<'form' | 'authenticating' | 'complete'>('form');
+  const [authStep, setAuthStep] = useState<
+    "form" | "authenticating" | "complete"
+  >("form");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -74,18 +84,15 @@ export const useMerakiAuth = (siteId: string) => {
 
   // Validar que tenemos los parámetros necesarios de Meraki
   useEffect(() => {
-    console.log('Validando parámetros de Meraki...');
-    
+
     if (!cleanBaseGrantUrl || !cleanClientMac) {
-      console.error('Faltan parámetros críticos de Meraki:', {
+      console.error("Faltan parámetros críticos de Meraki:", {
         base_grant_url: !!cleanBaseGrantUrl,
         client_mac: !!cleanClientMac,
         node_mac: !!cleanNodeMac,
-        user_continue_url: !!cleanUserContinueUrl
+        user_continue_url: !!cleanUserContinueUrl,
       });
       setIsError(true);
-    } else {
-      console.log('✅ Parámetros de Meraki válidos');
     }
   }, [cleanBaseGrantUrl, cleanNodeMac, cleanClientMac, cleanUserContinueUrl]);
 
@@ -139,7 +146,7 @@ export const useMerakiAuth = (siteId: string) => {
         setIsError(true);
         console.error("Error fetching data:", error);
       }
-    }
+    };
     getData();
   }, [cleanNodeMac, site._id]);
 
@@ -177,16 +184,14 @@ export const useMerakiAuth = (siteId: string) => {
     };
 
     createView();
-  }, [cleanClientMac, view._id, ap._id]);
-
-
+  }, [cleanClientMac, view._id, ap._id, formData]);
 
   const sendForm = async () => {
     if (!acceptedTerms) {
       alert("Por favor, acepte los términos y condiciones.");
       return;
     }
-
+    const { _id } = view;
     const hasErrors = Object.values(formData).some(
       (field) => field.error !== ""
     );
@@ -198,31 +203,44 @@ export const useMerakiAuth = (siteId: string) => {
     // Validación principal: parámetros de Meraki (usando versiones limpias)
     if (!cleanBaseGrantUrl) {
       alert("Error: No se encontró la URL de autenticación de Meraki.");
-      console.error('base_grant_url faltante:', { cleanBaseGrantUrl, queries });
+      console.error("base_grant_url faltante:", { cleanBaseGrantUrl, queries });
       return;
     }
 
     if (!cleanClientMac) {
       alert("Error: No se encontró la MAC del cliente.");
-      console.error('client_mac faltante:', { cleanClientMac, queries });
+      console.error("client_mac faltante:", { cleanClientMac, queries });
       return;
     }
 
     try {
-      setAuthStep('authenticating');
-      
-      // Construir la URL de grant para EXCAP - concatenación directa sin encodeURIComponent
+      setAuthStep("authenticating");
+      await fetch(`/api/view`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: _id,
+          isLogin: true,
+          info: [
+            {
+              label: "email",
+              value: formData["Email"].value,
+              type: "email",
+            },
+          ],
+        }),
+      });
+      setIsLogin(true)
       const continueUrl = cleanUserContinueUrl || "https://www.netmask.co/";
       const grantUrl = `${cleanBaseGrantUrl}?continue_url=${continueUrl}`;
-      
-      // Redirigir a Meraki para completar la autenticación
       window.location.href = grantUrl;
-      
     } catch (error) {
-      console.error('Error en autenticación:', error);
+      console.error("Error en autenticación:", error);
       setIsError(true);
-      setAuthStep('form');
-      alert('Error al procesar la autenticación. Por favor, intente de nuevo.');
+      setAuthStep("form");
+      alert("Error al procesar la autenticación. Por favor, intente de nuevo.");
     }
   };
 
@@ -233,9 +251,9 @@ export const useMerakiAuth = (siteId: string) => {
     acceptedTerms,
     setAcceptedTerms,
     sendForm,
-    isLogged,
+    isLogin,
     isError,
-    isLoading: authStep === 'authenticating',
+    isLoading: authStep === "authenticating",
     authStep,
     merakiParams: {
       base_grant_url: cleanBaseGrantUrl,
@@ -245,7 +263,7 @@ export const useMerakiAuth = (siteId: string) => {
       client_ip,
       gateway_id,
       node_id,
-      hasValidParams: !!(cleanBaseGrantUrl && cleanClientMac)
-    }
+      hasValidParams: !!(cleanBaseGrantUrl && cleanClientMac),
+    },
   };
 };
