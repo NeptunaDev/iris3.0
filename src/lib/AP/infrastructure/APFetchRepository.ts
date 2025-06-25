@@ -5,6 +5,7 @@ import { APIResponse } from "@/lib/Shared/domain/response";
 import { buildQueryString } from "@/lib/Shared/infrastructure/FetchRepository/queryUtils";
 import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";
 import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/caseUtils";
+import { getCookie } from "cookies-next";
 
 const API_ENDPOINTS = {
   aps: `${URI_API}ap/`,
@@ -15,11 +16,13 @@ export const createAPFetchRepository = (): Repository<AP> => ({
     const snakeCaseCriteria = criteria ? transformToSnakeCase(criteria) : undefined;
     const queryString = buildQueryString(snakeCaseCriteria);
     const URI = queryString ? `${API_ENDPOINTS.aps}${queryString}` : API_ENDPOINTS.aps;
+    const token = getCookie("token");
     try {
       const response = await fetch(URI, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
       });
       const apiResponse = await handleApiResponse<any[]>(response);
@@ -57,8 +60,8 @@ export const createAPFetchRepository = (): Repository<AP> => ({
   update: async (id: string, ap: APUpdate): Promise<APIResponse<AP>> => {
     try {
       const snakeCaseAp = transformToSnakeCase(ap);
-      const response = await fetch(`${API_ENDPOINTS.aps}${id}/`, {
-        method: 'PUT',
+      const response = await fetch(`${API_ENDPOINTS.aps}${id}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -77,7 +80,7 @@ export const createAPFetchRepository = (): Repository<AP> => ({
 
   remove: async (id: string): Promise<APIResponse<void>> => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.aps}${id}/`, {
+      const response = await fetch(`${API_ENDPOINTS.aps}${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

@@ -1,6 +1,9 @@
 // src/components/DeleteConfirmation.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Modal, Box, Button, Typography } from '@mui/material';
+import { createAPFetchRepository } from '@/lib/AP/infrastructure/APFetchRepository';
+import { createAPService } from '@/lib/AP/application/APUseCase';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -24,16 +27,32 @@ const buttonContainerStyle = {
 interface DeleteConfirmationProps {
   open: boolean;
   handleClose: () => void;
-  handleDelete: () => void;
+  idToDelete: string;
 }
 
 const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
   open,
   handleClose,
-  handleDelete,
+  idToDelete,
 }) => {
+  const apRepository = useMemo(() => createAPFetchRepository(), []);
+  const apService = useMemo(() => createAPService(apRepository), [apRepository]);
+  const queryClient = useQueryClient();
+
+  const { mutate: mutateDeleteAp, isPending: isPendingDeleteAp } = useMutation({
+    mutationFn: (id: string) => apService.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aps'] });
+      handleClose();
+    },
+  });
+
+  const handleDelete = () => {
+    mutateDeleteAp(idToDelete)
+  }
+
   return (
-    <Modal open={open} onClose={handleClose}>
+    <Modal open={isPendingDeleteAp ? true : open} onClose={isPendingDeleteAp ? undefined : handleClose}>
       <Box sx={style}>
         <Typography variant="h3" gutterBottom>
           ¿Está seguro de que desea eliminar este registro?
