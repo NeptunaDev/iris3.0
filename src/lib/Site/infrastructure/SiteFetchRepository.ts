@@ -5,6 +5,7 @@ import { buildQueryString } from "@/lib/Shared/infrastructure/FetchRepository/qu
 import { handleApiResponse, createApiError } from "@/lib/Shared/infrastructure/FetchRepository/utils";
 import { transformToSnakeCase, transformToCamelCase } from "@/lib/Shared/domain/caseUtils";
 import { URI_API } from "@/configuration/config.client";
+import { getCookie } from "cookies-next";
 
 const API_ENDPOINTS = {
   sites: `${URI_API}site/`,
@@ -12,6 +13,7 @@ const API_ENDPOINTS = {
 
 export const createSiteFetchRepository = (): Repository<Site> => ({
   find: async (criteria?: Partial<Site>): Promise<APIResponse<Site[]>> => {
+    const token = getCookie("token") as string;
     const snakeCaseCriteria = criteria ? transformToSnakeCase(criteria) : undefined;
     const queryString = buildQueryString(snakeCaseCriteria);
     const URI = queryString ? `${API_ENDPOINTS.sites}${queryString}` : API_ENDPOINTS.sites;
@@ -20,6 +22,7 @@ export const createSiteFetchRepository = (): Repository<Site> => ({
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
       });
       const apiResponse = await handleApiResponse<any[]>(response);
@@ -57,8 +60,8 @@ export const createSiteFetchRepository = (): Repository<Site> => ({
   update: async (id: string, site: SiteUpdate): Promise<APIResponse<Site>> => {
     try {
       const snakeCaseSite = transformToSnakeCase(site);
-      const response = await fetch(`${API_ENDPOINTS.sites}${id}/`, {
-        method: 'PUT',
+      const response = await fetch(`${API_ENDPOINTS.sites}${id}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -77,7 +80,7 @@ export const createSiteFetchRepository = (): Repository<Site> => ({
 
   remove: async (id: string): Promise<APIResponse<void>> => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.sites}${id}/`, {
+      const response = await fetch(`${API_ENDPOINTS.sites}${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

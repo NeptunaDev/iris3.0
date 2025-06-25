@@ -1,6 +1,9 @@
 // src/components/DeleteConfirmation.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Modal, Box, Button, Typography } from '@mui/material';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createSiteFetchRepository } from '@/lib/Site/infrastructure/SiteFetchRepository';
+import { createSiteService } from '@/lib/Site/application/SiteUseCase';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -24,14 +27,30 @@ const buttonContainerStyle = {
 interface DeleteConfirmationProps {
   open: boolean;
   handleClose: () => void;
-  handleDelete: () => void;
+  idToDelete: string;
 }
 
 const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
   open,
   handleClose,
-  handleDelete,
+  idToDelete
 }) => {
+  const siteRepository = useMemo(() => createSiteFetchRepository(), []);
+  const siteService = useMemo(() => createSiteService(siteRepository), [siteRepository]);
+  const queryClient = useQueryClient();
+
+  const { mutate: mutateDeleteSite, isPending: isPendingDeleteSite } = useMutation({
+    mutationFn: (id: string) => siteService.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sites'] });
+      handleClose();
+    }
+  })
+
+  const handleDelete = () => {
+    mutateDeleteSite(idToDelete);
+  }
+
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
