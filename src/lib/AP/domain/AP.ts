@@ -9,4 +9,6 @@ export interface AP {
 
 export interface APCreate extends Omit<AP, 'createdAt' | 'updatedAt' | 'id'> {}
 
-export interface APUpdate extends Partial<APCreate> {} 
+export interface APUpdate extends Partial<APCreate> {
+    readonly id: string;
+}
