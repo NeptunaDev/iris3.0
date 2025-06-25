@@ -1,4 +1,4 @@
-import React, { ChangeEvent, ChangeEventHandler, Dispatch } from "react";
+import React, { ChangeEvent, ChangeEventHandler, Dispatch, useEffect, useMemo, useState } from "react";
 import {
   Modal,
   Box,
@@ -12,7 +12,14 @@ import {
   Grid,
   Stack,
 } from "@mui/material";
-import { DataItem, Organization } from "../page";
+import { Organization } from "@/lib/Organization/domain/Organization";
+import { createOrganizationFetchRepository } from "@/lib/Organization/infrastructure/OrganizationFetchRepository";
+import { createOrganizationService } from "@/lib/Organization/application/OrganizationUseCase";
+import { useQuery } from "@tanstack/react-query";
+import { APIResponse } from "@/lib/Shared/domain/response";
+import { getCookie } from "cookies-next";
+import { jwtDecode } from "jwt-decode";
+import { Site } from "@/lib/Site/domain/Site";
 
 const style = {
   position: "absolute" as "absolute",
@@ -30,22 +37,10 @@ const style = {
 interface CreateUpdateModalProps {
   open: boolean;
   handleClose: () => void;
-  data: {
-    name: string;
-    _id: string;
-    siteId: string;
-    type: string;
-    idOrganization: string;
-    host: string;
-    port: string;
-    username: string;
-    password: string;
-    sslverify: string;
-  };
-  setCurrentData: Dispatch<React.SetStateAction<DataItem>>;
+  data: Site
+  setCurrentData: Dispatch<React.SetStateAction<Site>>;
   handleSubmit: () => void;
   isUpdate: boolean;
-  organizations: Organization[];
 }
 
 const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
@@ -55,8 +50,16 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
   setCurrentData,
   handleSubmit,
   isUpdate,
-  organizations,
 }) => {
+  const organizationRepository = useMemo(() => createOrganizationFetchRepository(), []);
+  const organizationService = useMemo(() => createOrganizationService(organizationRepository), [organizationRepository]);
+  const [idClient, setIdClient] = useState<string>('');
+  const { data: dataOrganizations } = useQuery<APIResponse<Organization[] | number>, Error>({
+    queryKey: ['organizations'],
+    queryFn: () => organizationService.find({ idClient }),
+    enabled: !!idClient
+  });
+
   const handleChange: ChangeEventHandler<
     HTMLInputElement | HTMLTextAreaElement
   > = (e) => {
@@ -72,6 +75,18 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
     const { name, value } = e.target;
     setCurrentData((prev) => ({ ...prev, [name]: value }));
   };
+
+  useEffect(() => {
+    try {
+      const token = getCookie("token") as string;
+      if (token) {
+        const { id } = jwtDecode(token) as { id: string };
+        setIdClient(id);
+      }
+    } catch (error) {
+      console.error('Error decoding token:', error);
+    }
+  }, []);
 
   return (
     <Modal open={open} onClose={handleClose}>
@@ -121,8 +136,8 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
                     value={data.idOrganization}
                     onChange={handleSelectChange}
                   >
-                    {organizations.map((org) => (
-                      <MenuItem key={org._id} value={org._id}>
+                    {dataOrganizations?.data && typeof dataOrganizations.data === 'object' && dataOrganizations.data.map((org) => (
+                      <MenuItem key={org.id} value={org.id}>
                         {org.name}
                       </MenuItem>
                     ))}
@@ -184,8 +199,8 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
                   <Grid item xs={6}>
                     <TextField
                       label="Verificación SSL"
-                      name="sslverify"
-                      value={data.sslverify}
+                      name="sslVerify"
+                      value={data.sslVerify}
                       onChange={handleChange}
                       fullWidth
                       margin="normal"
