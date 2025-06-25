@@ -11,15 +11,33 @@ import {
   SelectChangeEvent,
   Grid,
   Stack,
+  FormControlLabel,
+  Checkbox,
+  CircularProgress,
 } from "@mui/material";
 import { Organization } from "@/lib/Organization/domain/Organization";
 import { createOrganizationFetchRepository } from "@/lib/Organization/infrastructure/OrganizationFetchRepository";
 import { createOrganizationService } from "@/lib/Organization/application/OrganizationUseCase";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { APIResponse } from "@/lib/Shared/domain/response";
 import { getCookie } from "cookies-next";
 import { jwtDecode } from "jwt-decode";
-import { Site } from "@/lib/Site/domain/Site";
+import { SiteCreate, SiteUpdate } from "@/lib/Site/domain/Site";
+import { createSiteFetchRepository } from "@/lib/Site/infrastructure/SiteFetchRepository";
+import { createSiteService } from "@/lib/Site/application/SiteUseCase";
+import { generateRandomText } from "@/utils/strings/generateRandomText";
+
+const initialData: SiteCreate = {
+  name: "",
+  idOrganization: "",
+  siteId: "",
+  type: "",
+  host: null,
+  port: null,
+  username: null,
+  password: null,
+  sslverify: false,
+}
 
 const style = {
   position: "absolute" as "absolute",
@@ -37,34 +55,51 @@ const style = {
 interface CreateUpdateModalProps {
   open: boolean;
   handleClose: () => void;
-  data: Site
-  setCurrentData: Dispatch<React.SetStateAction<Site>>;
-  handleSubmit: () => void;
-  isUpdate: boolean;
+  data: SiteUpdate
 }
 
 const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
   open,
   handleClose,
-  data,
-  setCurrentData,
-  handleSubmit,
-  isUpdate,
+  data
 }) => {
   const organizationRepository = useMemo(() => createOrganizationFetchRepository(), []);
   const organizationService = useMemo(() => createOrganizationService(organizationRepository), [organizationRepository]);
+  const siteRepository = useMemo(() => createSiteFetchRepository(), []);
+  const siteService = useMemo(() => createSiteService(siteRepository), [siteRepository]);
+  const queryClient = useQueryClient();
+
   const [idClient, setIdClient] = useState<string>('');
   const { data: dataOrganizations } = useQuery<APIResponse<Organization[] | number>, Error>({
     queryKey: ['organizations'],
     queryFn: () => organizationService.find({ idClient }),
     enabled: !!idClient
   });
+  const isUpdate = !!('id' in data) && !!data.id;
+  const [siteData, setSiteData] = useState<SiteCreate>(initialData);
+
+  const { mutate: mutateCreateSite, isPending: isPendingCreateSite } = useMutation({
+    mutationFn: (site: SiteCreate) => siteService.create(site),
+    onSuccess: () => {
+      handleCloseModal();
+      queryClient.invalidateQueries({ queryKey: ['sites'] });
+    }
+  })
+
+  const { mutate: mutateUpdateSite, isPending: isPendingUpdateSite } = useMutation({
+    mutationFn: (site: SiteUpdate) => siteService.update(site.id, site),
+    onSuccess: () => {
+      handleCloseModal();
+      queryClient.invalidateQueries({ queryKey: ['sites'] });
+    }
+  })
+  const isLoading = isPendingCreateSite || isPendingUpdateSite;
 
   const handleChange: ChangeEventHandler<
     HTMLInputElement | HTMLTextAreaElement
   > = (e) => {
     const { name, value } = e.target;
-    setCurrentData((prev) => ({ ...prev, [name]: value }));
+    setSiteData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (
@@ -73,8 +108,32 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
       | SelectChangeEvent<string>
   ) => {
     const { name, value } = e.target;
-    setCurrentData((prev) => ({ ...prev, [name]: value }));
+    setSiteData((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setSiteData((prev) => ({ ...prev, [name]: checked }));
+  };
+
+  const handleCloseModal = () => {
+    setSiteData(initialData);
+    handleClose();
+  }
+
+  useEffect(() => {
+    setSiteData({
+      name: data.name || "",
+      idOrganization: data.idOrganization || "",
+      siteId: data.siteId || "",
+      type: data.type || "",
+      host: data.host || "",
+      port: data.port || "",
+      username: data.username || "",
+      password: data.password || "",
+      sslverify: data.sslverify === true,
+    });
+  }, [data]);
 
   useEffect(() => {
     try {
@@ -89,16 +148,16 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
   }, []);
 
   return (
-    <Modal open={open} onClose={handleClose}>
+    <Modal open={isLoading || open} onClose={isLoading ? () => { } : handleCloseModal}>
       <>
-        {data.type === "" ? (
+        {siteData.type === "" ? (
           <Stack sx={style}>
             <h2>Seleccione un tipo de sitio</h2>
             <Button
               variant="contained"
               color="primary"
               onClick={() => {
-                setCurrentData((prev) => ({ ...prev, type: "meraki" }));
+                setSiteData((prev) => ({ ...prev, type: "meraki", siteId: generateRandomText(8) }));
               }}
             >
               Meraki
@@ -107,7 +166,8 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
               variant="contained"
               color="primary"
               onClick={() => {
-                setCurrentData((prev) => ({ ...prev, type: "ubiquiti" }));
+
+                setSiteData((prev) => ({ ...prev, type: "ubiquiti" }));
               }}
             >
               Ubiquiti
@@ -121,7 +181,7 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
                 <TextField
                   label="Nombre"
                   name="name"
-                  value={data.name}
+                  value={siteData.name}
                   onChange={handleChange}
                   fullWidth
                   margin="normal"
@@ -133,7 +193,7 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
                   <Select
                     label="Organización"
                     name="idOrganization"
-                    value={data.idOrganization}
+                    value={siteData.idOrganization}
                     onChange={handleSelectChange}
                   >
                     {dataOrganizations?.data && typeof dataOrganizations.data === 'object' && dataOrganizations.data.map((org) => (
@@ -144,13 +204,13 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
                   </Select>
                 </FormControl>
               </Grid>
-              {data.type === "ubiquiti" && (
+              {siteData.type === "ubiquiti" && (
                 <>
                   <Grid item xs={6}>
                     <TextField
                       label="ID Sitio"
                       name="siteId"
-                      value={data.siteId}
+                      value={siteData.siteId}
                       onChange={handleChange}
                       fullWidth
                       margin="normal"
@@ -160,7 +220,7 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
                     <TextField
                       label="Host"
                       name="host"
-                      value={data.host}
+                      value={siteData.host}
                       onChange={handleChange}
                       fullWidth
                       margin="normal"
@@ -170,7 +230,7 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
                     <TextField
                       label="Puerto"
                       name="port"
-                      value={data.port}
+                      value={siteData.port}
                       onChange={handleChange}
                       fullWidth
                       margin="normal"
@@ -180,7 +240,7 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
                     <TextField
                       label="Usuario"
                       name="username"
-                      value={data.username}
+                      value={siteData.username}
                       onChange={handleChange}
                       fullWidth
                       margin="normal"
@@ -190,20 +250,24 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
                     <TextField
                       label="Contraseña"
                       name="password"
-                      value={data.password}
+                      value={siteData.password}
                       onChange={handleChange}
                       fullWidth
                       margin="normal"
                     />
                   </Grid>
                   <Grid item xs={6}>
-                    <TextField
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          name="sslverify"
+                          checked={siteData?.sslverify === true}
+                          onChange={handleCheckboxChange}
+                          color="primary"
+                        />
+                      }
                       label="Verificación SSL"
-                      name="sslVerify"
-                      value={data.sslVerify}
-                      onChange={handleChange}
-                      fullWidth
-                      margin="normal"
+                      sx={{ mt: 2 }} // Margen superior para alineación visual
                     />
                   </Grid>
                 </>
@@ -212,10 +276,21 @@ const CreateUpdateModal: React.FC<CreateUpdateModalProps> = ({
             <Box mt={2}>
               <Button
                 variant="contained"
+                disabled={isLoading}
                 color="primary"
-                onClick={handleSubmit}
+                onClick={() => {
+                  const site = Object.fromEntries(
+                    Object.entries(siteData).filter(([key, value]) => value !== null && value !== "" && value !== undefined)
+                  );
+                  if (isUpdate) {
+                    mutateUpdateSite({ ...site, id: data.id } as SiteUpdate);
+                    return;
+                  }
+                  mutateCreateSite(site as SiteCreate);
+                }}
               >
                 {isUpdate ? "Actualizar" : "Crear"}
+                {isLoading && <CircularProgress size={20} />}
               </Button>
             </Box>
           </Box>

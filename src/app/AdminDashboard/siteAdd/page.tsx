@@ -18,130 +18,64 @@ import {
 import CreateUpdateModal from "./components/CreateUpdateModal";
 import DeleteConfirmation from "./components/DeleteConfirmation";
 import { getCookie } from "cookies-next";
-import { Site } from "@/lib/Site/domain/Site";
+import { Site, SiteUpdate } from "@/lib/Site/domain/Site";
 import { createSiteFetchRepository } from "@/lib/Site/infrastructure/SiteFetchRepository";
 import { createSiteService } from "@/lib/Site/application/SiteUseCase";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { APIResponse } from "@/lib/Shared/domain/response";
+
+const initialData: SiteUpdate = {
+  id: "",
+  name: "",
+  idOrganization: "",
+  siteId: "",
+  type: "",
+  host: "",
+  port: "",
+  username: "",
+  password: "",
+  sslverify: false,
+}
 
 const SiteCrud = () => {
   const siteRepository = useMemo(() => createSiteFetchRepository(), []);
   const siteService = useMemo(() => createSiteService(siteRepository), [siteRepository]);
   const [sites, setSites] = useState<Site[]>([]);
+  const [idToDelete, setIdToDelete] = useState<string>("");
 
-  const { data: siteData} = useQuery<APIResponse<Site[] | number>, Error>({
+  const { data: siteData } = useQuery<APIResponse<Site[] | number>, Error>({
     queryKey: ['sites'],
     queryFn: () => siteService.find({}),
   });
 
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [currentData, setCurrentData] = useState<Site>({
-    id: "",
-    name: "",
-    createdAt: "",
-    updatedAt: "",
-    idOrganization: "",
-    siteId: "",
-    type: "",
-    host: "",
-    port: "",
-    username: "",
-    password: "",
-    sslVerify: "",
-  });
-  const [isUpdate, setIsUpdate] = useState(false);
+  const [currentData, setCurrentData] = useState<SiteUpdate>(initialData);
   const token = getCookie("token");
 
   const handleOpenCreate = () => {
-    setCurrentData({
-      id: "",
-      name: "",
-      createdAt: "",
-      updatedAt: "",
-      idOrganization: "",
-      siteId: "",
-      type: "",
-      host: "",
-      port: "",
-      username: "",
-      password: "",
-      sslVerify: "",
-    });
-    setIsUpdate(false);
+    setCurrentData(initialData);
     setModalOpen(true);
   };
 
   const handleOpenUpdate = (item: Site) => {
-    setCurrentData(item);
-    setIsUpdate(true);
+    const { createdAt, updatedAt, ...rest } = item;
+    setCurrentData(rest);
     setModalOpen(true);
   };
 
-  const handleCloseModal = () => setModalOpen(false);
-  const handleCloseDelete = () => setDeleteOpen(false);
+  const handleCloseModal = () => {
+    setCurrentData(initialData);
+    setModalOpen(false);
+  }
 
-  const handleSubmit = async () => {
-    try {
-      const { name, type, idOrganization, ...res } = currentData;
-      let data = { idOrganization, type: type.toLowerCase(), name };
-      if (type.toLocaleLowerCase() === "ubiquiti") data = { ...data, ...res };
-      const response = await fetch("/api/site", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-      const newData = await response.json();
-      setModalOpen(false);
-    } catch (error) {
-      console.log("🚀 ~ handleSubmit ~ error:", error);
-    }
-  };
-
-  const handleUpdate = async () => {
-    const { type, name, host, port, username, sslVerify } = currentData;
-    try {
-      const response = await fetch(`/api/site/${currentData.id}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type,
-          name,
-          host,
-          port,
-          username,
-          sslVerify,
-        }),
-      });
-      const newData = await response.json();
-    } catch (error) {
-      console.log(error, "no pudo");
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      const response = await fetch(`/api/site/${currentData.id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      console.log(response);
-    } catch (error) {
-      console.log(error, "No fue Posible Eliminar el Site");
-    }
+  const handleCloseDelete = () => {
+    setIdToDelete("");
     setDeleteOpen(false);
-  };
+  }
 
   const handleOpenDelete = (item: Site) => {
-    setCurrentData(item);
+    setIdToDelete(item.id);
     setDeleteOpen(true);
   };
 
@@ -191,7 +125,7 @@ const SiteCrud = () => {
                 <TableCell>{item.port}</TableCell>
                 <TableCell>{item.username}</TableCell>
                 <TableCell>{item.type}</TableCell>
-                <TableCell>{item.sslVerify}</TableCell>
+                <TableCell>{item.sslverify ? "Si" : "No"}</TableCell>
                 <TableCell>
                   <Button
                     variant="contained"
@@ -219,15 +153,12 @@ const SiteCrud = () => {
         open={modalOpen}
         handleClose={handleCloseModal}
         data={currentData}
-        setCurrentData={setCurrentData}
-        handleSubmit={isUpdate ? handleUpdate : handleSubmit}
-        isUpdate={isUpdate}
       />
 
       <DeleteConfirmation
         open={deleteOpen}
         handleClose={handleCloseDelete}
-        handleDelete={handleDelete}
+        idToDelete={idToDelete}
       />
     </Container>
   );
