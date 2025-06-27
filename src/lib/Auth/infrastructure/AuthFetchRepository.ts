@@ -9,7 +9,6 @@ const API_ENDPOINTS = {
 export const createAuthFetchRepository = (): AuthRepository => ({
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
-      console.log(credentials, API_ENDPOINTS.auth);
       const response = await fetch(`${API_ENDPOINTS.auth}login`, {
         method: 'POST',
         headers: {
