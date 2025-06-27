@@ -3,6 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
 import { FormData, AP, Site, View } from "../interfaces";
 import { inputs } from "../data";
+import { validateField } from "../validations";
 
 export const useMerakiAuth = (siteId: string) => {
   const searchParams = useSearchParams().toString();
@@ -63,28 +64,42 @@ export const useMerakiAuth = (siteId: string) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // Obtener el tipo de campo para la validación
+    const fieldType = inputs.find(input => input.label === name)?.type || "text";
+    
+    // Aplicar validación
+    const error = validateField(value, fieldType);
+    
     setFormData((prev) => ({
       ...prev,
       [name]: {
         ...prev[name],
         value,
+        error,
       },
     }));
   };
 
   const handleChangeSelect = (name: string, value: string) => {
+    // Obtener el tipo de campo para la validación
+    const fieldType = inputs.find(input => input.label === name)?.type || "text";
+    
+    // Aplicar validación
+    const error = validateField(value, fieldType);
+    
     setFormData((prev) => ({
       ...prev,
       [name]: {
         ...prev[name],
         value,
+        error,
       },
     }));
   };
 
   // Validar que tenemos los parámetros necesarios de Meraki
   useEffect(() => {
-
     if (!cleanBaseGrantUrl || !cleanClientMac) {
       console.error("Faltan parámetros críticos de Meraki:", {
         base_grant_url: !!cleanBaseGrantUrl,
@@ -184,13 +199,41 @@ export const useMerakiAuth = (siteId: string) => {
     };
 
     createView();
-  }, [cleanClientMac, view._id, ap._id, formData]);
+  }, [cleanClientMac, view._id, ap._id]);
 
   const sendForm = async () => {
     if (!acceptedTerms) {
       alert("Por favor, acepte los términos y condiciones.");
       return;
     }
+
+    // Validar todos los campos antes de enviar
+    const updatedFormData = { ...formData };
+    let hasValidationErrors = false;
+
+    Object.keys(formData).forEach((fieldName) => {
+      const field = formData[fieldName];
+      const fieldType = inputs.find(input => input.label === fieldName)?.type || "text";
+      const error = validateField(field.value, fieldType);
+      
+      updatedFormData[fieldName] = {
+        ...field,
+        error,
+      };
+      
+      if (error) {
+        hasValidationErrors = true;
+      }
+    });
+
+    // Actualizar el estado con los errores de validación
+    setFormData(updatedFormData);
+
+    if (hasValidationErrors) {
+      alert("Por favor, corrija los errores en el formulario antes de enviar.");
+      return;
+    }
+
     const { _id } = view;
     const hasErrors = Object.values(formData).some(
       (field) => field.error !== ""
@@ -232,7 +275,7 @@ export const useMerakiAuth = (siteId: string) => {
           ],
         }),
       });
-      setIsLogin(true)
+      setIsLogin(true);
       const continueUrl = cleanUserContinueUrl || "https://www.netmask.co/";
       const grantUrl = `${cleanBaseGrantUrl}?continue_url=${continueUrl}`;
       window.location.href = grantUrl;
