@@ -4,61 +4,19 @@ import {
   AppBar,
   Box,
   IconButton,
-  InputBase,
   Menu,
   MenuItem,
-  Badge,
   Typography,
   Toolbar,
   Avatar,
   Divider,
   ListItemIcon,
 } from "@mui/material";
-import { styled, alpha } from "@mui/material/styles";
-import { FaBell, FaUserCircle, FaSignOutAlt, FaUser } from "react-icons/fa";
+import { FaSignOutAlt } from "react-icons/fa";
 import MenuIcon from "@mui/icons-material/Menu";
 import { deleteCookie, getCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
-
-const Search = styled("div")(({ theme }) => ({
-  position: "relative",
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
-  "&:hover": {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
-  },
-  marginRight: theme.spacing(2),
-  marginLeft: 0,
-  width: "100%",
-  [theme.breakpoints.up("sm")]: {
-    marginLeft: theme.spacing(3),
-    width: "auto",
-  },
-}));
-
-const SearchIconWrapper = styled("div")(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: "100%",
-  position: "absolute",
-  pointerEvents: "none",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: "inherit",
-  "& .MuiInputBase-input": {
-    padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create("width"),
-    width: "100%",
-    [theme.breakpoints.up("md")]: {
-      width: "20ch",
-    },
-  },
-}));
 
 interface MyJwtPayload {
   id: string;
@@ -67,9 +25,7 @@ interface MyJwtPayload {
   exp: number;
 }
 
-const NavBar: React.FC<{ handleDrawerToggle: () => void }> = ({
-  handleDrawerToggle,
-}) => {
+const NavBar: React.FC<{ onMenuClick: () => void }> = ({ onMenuClick }) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
   const router = useRouter();
@@ -106,70 +62,95 @@ const NavBar: React.FC<{ handleDrawerToggle: () => void }> = ({
       transformOrigin={{ vertical: "top", horizontal: "right" }}
       open={isMenuOpen}
       onClose={handleMenuClose}
+      slotProps={{
+        paper: {
+          elevation: 4,
+          sx: {
+            mt: 1.5,
+            minWidth: 200,
+            borderRadius: 2,
+            overflow: "visible",
+            "&::before": {
+              content: '""',
+              display: "block",
+              position: "absolute",
+              top: 0,
+              right: 14,
+              width: 10,
+              height: 10,
+              bgcolor: "background.paper",
+              transform: "translateY(-50%) rotate(45deg)",
+              zIndex: 0,
+            },
+          },
+        },
+      }}
     >
-      <Box sx={{ padding: 2 }}>
-        <Typography variant="h6" noWrap>
-          {name}
+      <Box sx={{ px: 2, py: 1.5 }}>
+        <Typography variant="subtitle2" color="text.secondary">
+          Cuenta
+        </Typography>
+        <Typography variant="body1" fontWeight={600} noWrap>
+          {name || "Usuario"}
         </Typography>
       </Box>
       <Divider />
-      {/* <MenuItem onClick={handleMenuClose}>
-        <ListItemIcon>
-          <FaUser />
+      <MenuItem
+        onClick={handleLogout}
+        sx={{
+          py: 1.5,
+          "&:hover": {
+            bgcolor: "action.hover",
+          },
+        }}
+      >
+        <ListItemIcon sx={{ minWidth: 36 }}>
+          <FaSignOutAlt style={{ fontSize: "1rem" }} />
         </ListItemIcon>
-        Perfil
-      </MenuItem> */}
-      <MenuItem onClick={handleLogout}>
-        <ListItemIcon>
-          <FaSignOutAlt />
-        </ListItemIcon>
-        Cerrar Sesión
+        Cerrar sesión
       </MenuItem>
     </Menu>
   );
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="fixed">
-        <Toolbar>
-          <Box display="flex" alignItems="center" sx={{ flexGrow: 1 }}>
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="open drawer"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-          </Box>
-          <Box display="flex" alignItems="center">
-            {/* <IconButton size="large" aria-label="show new notifications" color="inherit">
-              <Badge badgeContent={17} color="error">
-                <FaBell style={{ fontSize: '1.2rem' }} />
-              </Badge>
-            </IconButton> */}
-            {/* <Search>
-              <SearchIconWrapper>
-                <SearchIcon />
-              </SearchIconWrapper>
-              <StyledInputBase
-                placeholder="Buscar…"
-                inputProps={{ 'aria-label': 'search' }}
-              />
-            </Search> */}
-            <IconButton
-              size="large"
-              edge="end"
-              aria-label="account of current user"
-              aria-controls={menuId}
-              aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
-              color="inherit"
-            >
-              <Avatar sx={{ width: 30, height: 30 }}/>
-            </IconButton>
-          </Box>
+      <AppBar
+        position="fixed"
+        elevation={1}
+        sx={{
+          bgcolor: "primary.main",
+          borderBottom: "1px solid",
+          borderColor: "primary.dark",
+        }}
+      >
+        <Toolbar sx={{ minHeight: { xs: 56, sm: 64 } }}>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="abrir menú"
+            onClick={onMenuClick}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Box sx={{ flexGrow: 1 }} />
+          <IconButton
+            size="medium"
+            edge="end"
+            aria-label="cuenta del usuario"
+            aria-controls={menuId}
+            aria-haspopup="true"
+            onClick={handleProfileMenuOpen}
+            color="inherit"
+            sx={{
+              bgcolor: "rgba(255,255,255,0.12)",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+            }}
+          >
+            <Avatar sx={{ width: 36, height: 36, fontSize: "0.95rem" }}>
+              {name ? name.charAt(0).toUpperCase() : "U"}
+            </Avatar>
+          </IconButton>
         </Toolbar>
       </AppBar>
       {renderMenu}

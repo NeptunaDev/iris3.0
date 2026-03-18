@@ -26,12 +26,12 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
       <DemoContainer components={['DatePicker']}>
         <Stack direction="row" spacing={2} alignItems="center">
           <DatePicker
-            label="Start Date"
+            label="Fecha de inicio"
             value={tempStartDate}
             onChange={(date) => setTempStartDate(date)}
           />
           <DatePicker
-            label="End Date"
+            label="Fecha de fin"
             value={tempEndDate}
             onChange={(date) => setTempEndDate(date)}
           />
@@ -40,7 +40,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
             onClick={handleApplyDates}
             sx={{ height: '56px' }}  // Match height with DatePicker
           >
-            Apply Dates
+            Aplicar fechas
           </Button>
         </Stack>
       </DemoContainer>

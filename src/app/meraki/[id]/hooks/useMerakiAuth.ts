@@ -1,32 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { getQueriesStr } from "@/utils/api/request/getQueries";
-import { APIResponse } from "@/lib/Shared/domain/response";
-import { View, ViewUpdate } from "@/lib/View/domain/View";
-import { createViewFetchRepository } from "@/lib/View/infrastructure/ViewFetchRepository";
-import { createViewService } from "@/lib/View/application/ViewService";
 import { FormData } from "../interfaces";
 import { inputs } from "../data";
-import { useCautivePortalConnection } from "@/hooks/useCautivePortalConnection";
-import { ViewSendEmail, ViewVerifyCode } from "@/lib/View/domain/ViewSpecification";
+
+const CONTINUE_URL = "https://www.velez.com.co/";
 
 export const useMerakiAuth = (siteId: string) => {
-  // State management
   const [isLogged, setIsLogged] = useState(false);
   const [isError, setIsError] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showVerificationForm, setShowVerificationForm] = useState(false);
   const [otp, setOtp] = useState("");
+  const [view, setView] = useState<{ id: string } | null>(null);
 
-  // URL and query parameters
   const queries = getQueriesStr(
     useSearchParams().toString().replaceAll("%3A", ":").replaceAll("%2F", "/")
   );
-  const { base_grant_url } = queries;
-  const url = base_grant_url + "?continue_url=" + "https://www.velez.com.co/";
+  const clientMac = queries?.client_mac;
+  const nodeMac = queries?.node_mac;
+  const baseGrantUrl = queries?.base_grant_url;
+  const url = baseGrantUrl ? `${baseGrantUrl}?continue_url=${encodeURIComponent(CONTINUE_URL)}` : "";
 
-  // Form data initialization
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce(
       (acc, input) => ({
@@ -41,75 +37,111 @@ export const useMerakiAuth = (siteId: string) => {
     )
   );
 
-  // Use the generic hook for connection logic
-  const { view, isError: connectionError } = useCautivePortalConnection({
-    siteId,
-    clientMac: queries?.client_mac,
-    nodeMac: queries?.node_mac,
-  });
+  // 1) Obtener sitio por siteId (API local, sin JWT)
+  const [site, setSite] = useState<{ _id: string } | null>(null);
+  useEffect(() => {
+    if (!siteId) return;
+    fetch(`/api/ubiquiti?type=SITE&siteId=${encodeURIComponent(siteId)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Site not found");
+        return res.json();
+      })
+      .then((data) => setSite(data.data))
+      .catch(() => setIsError(true));
+  }, [siteId]);
 
-  // Event handlers
+  // 2) Obtener AP por idSite + mac
+  const [ap, setAp] = useState<{ _id: string } | null>(null);
+  useEffect(() => {
+    if (!site?._id || !nodeMac) return;
+    fetch(
+      `/api/ubiquiti?type=AP&idSite=${encodeURIComponent(site._id)}&mac=${encodeURIComponent(nodeMac)}`
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error("AP not found");
+        return res.json();
+      })
+      .then((data) => setAp(data.data))
+      .catch(() => setIsError(true));
+  }, [site?._id, nodeMac]);
+
+  // 3) Crear vista cuando tengamos AP y clientMac
+  useEffect(() => {
+    if (!ap?._id || !clientMac || view) return;
+    fetch("/api/view", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idAp: ap._id, mac: clientMac }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to create view");
+        return res.json();
+      })
+      .then((data) => setView(data.data))
+      .catch(() => setIsError(true));
+  }, [ap?._id, clientMac, view]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name.startsWith("Código")) {
-      setOtp((prevOtp) => prevOtp + value);
+      setOtp((prev) => prev + value);
     } else {
       setFormData((prev) => ({
         ...prev,
-        [name]: {
-          ...prev[name],
-          value,
-        },
+        [name]: { ...prev[name], value },
       }));
     }
   };
 
   const handleChangeOtp = (otp: string) => setOtp(otp);
 
-  // View service initialization
-  const viewRepository = createViewFetchRepository();
-  const viewService = createViewService(viewRepository);
-
-  // Mutations
-  const { mutate: sendEmail } = useMutation<APIResponse<void>, Error, ViewSendEmail>({
-    mutationFn: (viewSendEmail: ViewSendEmail) => viewService.sendEmail(viewSendEmail),
-    onSuccess: () => setShowVerificationForm(true),
-    onError: (error) => console.error("Error sending email:", error),
-  });
-
-  const { mutate: updateView } = useMutation<APIResponse<View>, Error, ViewUpdate>({
-    mutationFn: (viewUpdate: ViewUpdate) => {
-      if (!view?.id) throw new Error("View ID is undefined");
-      return viewService.update(view.id, viewUpdate);
-    },
-    onSuccess: () => {
-      setIsLogged(true);
-      window.location.href = url;
-    },
-  });
-
-  const { mutate: verifyCode } = useMutation<APIResponse<void>, Error, ViewVerifyCode>({
-    mutationFn: (viewVerifyCode: ViewVerifyCode) => viewService.verifyCode(viewVerifyCode),
-    onSuccess: () => {
-      if (!view) return;
-      updateView({
-        isLogin: true,
-        info: [
-          {
-            label: "email",
-            value: formData["Email"]?.value,
-            type: "email"
-          },
-        ],
+  // Enviar email con código (API local)
+  const { mutate: sendEmail, isPending: isSendingEmail } = useMutation({
+    mutationFn: async (payload: { id_view: string; template: string; email: string }) => {
+      const res = await fetch("/api/communication/email-by-view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
+      if (!res.ok) throw new Error("Failed to send email");
     },
+    onSuccess: () => setShowVerificationForm(true),
+    onError: () => setIsError(true),
   });
 
-  // Action handlers
+  // Verificar código y marcar vista como login (API local)
+  const { mutate: verifyCode, isPending: isVerifying } = useMutation({
+    mutationFn: async (payload: { code: string; id_view: string }) => {
+      const res = await fetch("/api/view/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("Invalid code");
+    },
+    onSuccess: async () => {
+      if (!view?.id || !formData["Email"]?.value) return;
+      await fetch("/api/view", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: view.id,
+          isLogin: true,
+          info: [
+            { label: "email", value: formData["Email"].value, type: "email" },
+          ],
+        }),
+      });
+      setIsLogged(true);
+      if (url) window.location.href = url;
+    },
+    onError: () => setIsError(true),
+  });
+
   const handleSendEmail = () => {
     if (view?.id && formData["Email"]?.value) {
       sendEmail({
-        viewId: view.id,
+        id_view: view.id,
         template: "code_velez",
         email: formData["Email"].value,
       });
@@ -118,10 +150,7 @@ export const useMerakiAuth = (siteId: string) => {
 
   const handleVerifyCode = () => {
     if (view?.id && otp) {
-      verifyCode({
-        code: otp,
-        viewId: view.id,
-      });
+      verifyCode({ code: otp, id_view: view.id });
     }
   };
 
@@ -136,6 +165,7 @@ export const useMerakiAuth = (siteId: string) => {
     handleSendEmail,
     handleVerifyCode,
     isLogged,
-    isError: isError || connectionError,
+    isError,
+    isLoading: isSendingEmail || isVerifying,
   };
-}; 
+};

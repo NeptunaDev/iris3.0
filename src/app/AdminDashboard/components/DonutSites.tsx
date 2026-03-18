@@ -72,28 +72,14 @@ const DonutSitestPage = () => {
     plugins: {
       title: {
         display: true,
-        text: 'Users by Site',
+        text: 'Usuarios por sitio',
       },
     },
   };
 
-  if (!chartData || !chartData?.labels) return;
+  if (!chartData || !chartData?.labels) return null;
 
-  return (
-    <Container
-      sx={{
-        backgroundColor: "white",
-        borderRadius: "20px",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: '20px',
-        height: '400px',
-        width: '400px'
-      }}
-    >
-      <Doughnut data={chartData} options={options} />
-    </Container>
-  );
+  return <Doughnut data={chartData} options={options} />;
 };
 
 export default DonutSitestPage;
